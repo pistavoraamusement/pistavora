@@ -1,0 +1,45 @@
+body {
+  margin: 0;
+  font-family: Arial;
+  background: #f4f4f4;
+}
+
+header {
+  background: #f4d000;
+  padding: 20px;
+}
+
+.container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  padding: 30px;
+}
+
+.card {
+  text-decoration: none;
+  color: black;
+  background: #ddd;
+  padding: 40px;
+  border-radius: 20px;
+  text-align: center;
+  transition: 0.3s;
+}
+
+.card i {
+  font-size: 40px;
+  margin-bottom: 10px;
+}
+
+.card:hover {
+  background: #ccc;
+  transform: scale(1.05);
+}
+
+/* BACK BUTTON */
+.back {
+  display: inline-block;
+  margin: 20px;
+  text-decoration: none;
+  font-weight: bold;
+}

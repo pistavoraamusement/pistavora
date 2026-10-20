@@ -1,0 +1,389 @@
+--- a/app/Models/Booking.php
++++ b/app/Models/Booking.php
+@@ -9,7 +9,7 @@
+     protected $fillable = [
+         'user_id', 'service', 'tier', 'price', 'addons', 'visit_date', 'visit_time', 'payment_method',
+         'customer_id', 'customer_name', 'customer_contact', 'pax', 'reservation_date', 'reservation_time',
+-        'package', 'notes', 'status', 'payment_method', 'receipt_path',
++        'package', 'notes', 'status', 'payment_method', 'receipt_path', 'voucher_code',
+     ];
+ 
+     protected $casts = [
+--- a/app/Http/Controllers/User/BookingController.php
++++ b/app/Http/Controllers/User/BookingController.php
+@@ -661,7 +661,9 @@
+         return view('user.booking-review', ['booking' => $this->formatBooking($bookingModel)]);
+     }
+     /**
+-     * Confirm the chosen payment method for a booking (QR Ph or cash on-site).
++     * Confirm the chosen payment method for a booking (QR Ph or GCash).
++     * TODO: swap the manual GCash flow below for automated Paymongo GCash
++     * payments once that integration is ready.
+      *
+      * POST /user/bookings/{booking}/payment
+      */
+@@ -672,8 +674,9 @@
+         }
+ 
+         $validated = $request->validate([
+-            'payment_method' => ['required', 'string', 'in:qrph,cash'],
++            'payment_method' => ['required', 'string', 'in:qrph,gcash'],
+             'receipt'        => ['required_if:payment_method,qrph', 'nullable', 'image', 'max:5120'],
++            'gcash_receipt'  => ['required_if:payment_method,gcash', 'nullable', 'image', 'max:5120'],
+         ]);
+ 
+         $bookingModel = Booking::where('user_id', session('user_id'))->find($booking);
+@@ -682,25 +685,32 @@
+ 
+         $updateData = [
+             'payment_method' => $validated['payment_method'],
+-            'status' => $validated['payment_method'] === 'qrph'
+-                ? 'awaiting_verification'
+-                : 'pending_payment', // stays pending until paid on-site
++            'status' => 'awaiting_verification',
+         ];
+ 
+-        if ($validated['payment_method'] === 'qrph' && $request->hasFile('receipt')) {
++        $receiptFile = $validated['payment_method'] === 'gcash'
++            ? $request->file('gcash_receipt')
++            : $request->file('receipt');
++
++        if ($receiptFile) {
+             // Delete old receipt if re-uploading
+             if ($bookingModel->receipt_path) {
+                 \Illuminate\Support\Facades\Storage::disk('public')->delete($bookingModel->receipt_path);
+             }
+ 
+-            $updateData['receipt_path'] = $request->file('receipt')->store('receipts', 'public');
++            $updateData['receipt_path'] = $receiptFile->store('receipts', 'public');
+         }
+ 
+         $bookingModel->update($updateData);
+ 
++        // Remember which booking is progressing to the waiver step, so
++        // WaiverController@store knows which one to confirm + issue a
++        // voucher code for (the waiver form itself has no booking field).
++        session(['booking_id' => $bookingModel->id]);
++
+         $message = $validated['payment_method'] === 'qrph'
+             ? 'Thanks! We are verifying your QR Ph payment. Please sign the waiver to finish your booking.'
+-            : 'Payment method noted — please settle at the counter upon arrival. Please sign the waiver to finish your booking.';
++            : 'Thanks! We are verifying your GCash payment. Please sign the waiver to finish your booking.';
+ 
+         // Waiver is the last step of the booking flow (Booking -> Payment -> Waiver).
+         return redirect()
+@@ -782,8 +792,28 @@
+     }
+ 
+     /**
++     * Show the final receipt with the voucher code, right after the
++     * customer signs the waiver (see WaiverController@store).
++     *
++     * GET /app/bookings/{booking}/receipt
++     */
++    public function receipt(int $booking)
++    {
++        if (!session()->has('user_id')) {
++            return redirect('/login');
++        }
++
++        $bookingModel = Booking::where('user_id', session('user_id'))->find($booking);
++
++        abort_if(!$bookingModel, 404);
++        abort_if(!$bookingModel->voucher_code, 404);
++
++        return view('user.booking-receipt', ['booking' => $this->formatReceipt($bookingModel)]);
++    }
++
++    /**
+      * Shape a Booking model into the display array expected by the booking
+-     * views: ['id','package','date','pax','status_label','status_class'].
++     * views: ['id','package','date','pax','status','status_label','status_class','voucher_code'].
+      */
+     private function formatBooking(Booking $booking): array
+     {
+@@ -794,12 +824,53 @@
+             'package'      => $this->packages[$booking->service][$booking->package]['name'] ?? $booking->package,
+             'date'         => $booking->visit_date->format('M j, Y'),
+             'pax'          => $booking->tier,
++            'status'       => $booking->status,
+             'status_label' => $meta['label'],
+             'status_class' => $meta['class'],
++            'voucher_code' => $booking->voucher_code,
++        ];
++    }
++
++    /**
++     * Shape a Booking model into the display array expected by the receipt
++     * view: ['id','service_name','package_name','date','time','pax','price',
++     *        'payment_method','voucher_code'].
++     */
++    private function formatReceipt(Booking $booking): array
++    {
++        return [
++            'id'             => $booking->id,
++            'service_name'   => $this->services[$booking->service]['name'] ?? $booking->service,
++            'package_name'   => $this->packages[$booking->service][$booking->package]['name'] ?? $booking->package,
++            'date'           => $booking->visit_date->format('M j, Y'),
++            'time'           => $booking->visit_time,
++            'pax'            => $booking->tier,
++            'price'          => '₱' . number_format((float) $booking->price, 2),
++            'payment_method' => $booking->payment_method ? strtoupper($booking->payment_method) : null,
++            'voucher_code'   => $booking->voucher_code,
+         ];
+     }
+ 
+     /**
++     * Generate a unique voucher code for a confirmed booking, e.g. "9VFNI4M6".
++     */
++    private function generateVoucherCode(): string
++    {
++        // Excludes ambiguous characters (0/O, 1/I) so it's easy to read
++        // aloud and re-type at the counter.
++        $alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
++
++        do {
++            $code = '';
++            for ($i = 0; $i < 8; $i++) {
++                $code .= $alphabet[random_int(0, strlen($alphabet) - 1)];
++            }
++        } while (Booking::where('voucher_code', $code)->exists());
++
++        return $code;
++    }
++
++    /**
+      * Map a booking status to its display label + tag color class.
+      */
+     private function statusMeta(string $status): array
+--- a/app/Http/Controllers/User/WaiverController.php
++++ b/app/Http/Controllers/User/WaiverController.php
+@@ -3,6 +3,7 @@
+ namespace App\Http\Controllers\User;
+ 
+ use App\Http\Controllers\Controller;
++use App\Models\Booking;
+ use Illuminate\Http\RedirectResponse;
+ use Illuminate\Http\Request;
+ use Illuminate\Support\Facades\Auth;
+@@ -85,10 +86,50 @@
+         //     'ip_address'      => $request->ip(),
+         // ]);
+ 
+-        // Waiver is the last step of the booking flow (Booking -> Payment -> Waiver),
+-        // so signing it finishes the process.
++        // Waiver is the last step of the booking flow (Booking -> Payment -> Waiver).
++        // Signing it confirms the booking and issues the voucher code the
++        // cashier will look up at the counter (see BookingController@receipt).
++        $bookingId = session('booking_id');
++        $bookingModel = $bookingId
++            ? Booking::where('user_id', session('user_id'))->find($bookingId)
++            : null;
++
++        if (!$bookingModel) {
++            // No booking tracked in session (e.g. customer opened /user/waiver
++            // directly) — nothing to confirm, fall back to the bookings list.
++            return redirect()
++                ->route('user.bookings')
++                ->with('success', 'Waiver signed.');
++        }
++
++        $bookingModel->update([
++            'status'       => 'confirmed',
++            'voucher_code' => $this->generateVoucherCode(),
++        ]);
++
++        session()->forget('booking_id');
++
+         return redirect()
+-            ->route('user.bookings')
++            ->route('user.bookings.receipt', $bookingModel->id)
+             ->with('success', 'Waiver signed. Your booking is now confirmed!');
+     }
++
++    /**
++     * Generate a unique voucher code for a confirmed booking, e.g. "9VFNI4M6".
++     */
++    private function generateVoucherCode(): string
++    {
++        // Excludes ambiguous characters (0/O, 1/I) so it's easy to read
++        // aloud and re-type at the counter.
++        $alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
++
++        do {
++            $code = '';
++            for ($i = 0; $i < 8; $i++) {
++                $code .= $alphabet[random_int(0, strlen($alphabet) - 1)];
++            }
++        } while (Booking::where('voucher_code', $code)->exists());
++
++        return $code;
++    }
+ }
+\ No newline at end of file
+--- a/resources/views/user/booking-review.blade.php
++++ b/resources/views/user/booking-review.blade.php
+@@ -51,13 +51,13 @@
+                 </div>
+             </label>
+ 
+-            <label class="pkg payment-option" data-method="cash" style="cursor:pointer;align-items:center;transition:box-shadow .15s ease, border-color .15s ease;">
++            <label class="pkg payment-option" data-method="gcash" style="cursor:pointer;align-items:center;transition:box-shadow .15s ease, border-color .15s ease;">
+                 <div>
+-                    <b>Cash on-site</b>
+-                    <span>Pay at the counter upon arrival</span>
++                    <b>GCash</b>
++                    <span>Send payment to our GCash number</span>
+                 </div>
+                 <div class="price">
+-                    <input type="radio" name="payment_method" value="cash" onchange="togglePaymentPanels(this.value)" style="width:18px;height:18px;">
++                    <input type="radio" name="payment_method" value="gcash" onchange="togglePaymentPanels(this.value)" style="width:18px;height:18px;">
+                 </div>
+             </label>
+ 
+@@ -83,10 +83,25 @@
+             </div>
+         </div>
+ 
+-        {{-- Cash instructions --}}
+-        <div id="cashPanel" class="u-card" style="margin-top:14px;display:none;">
+-            <h4>Pay at the counter</h4>
+-            <p>Please settle payment upon arrival at WonderPark Amusement Com Inc. &mdash; Lipa Branch. Your slot will remain reserved as <b>"Pending payment"</b> until then.</p>
++        {{-- GCash instructions --}}
++        <div id="gcashPanel" class="u-card" style="margin-top:14px;display:none;">
++            <h4>Send via GCash</h4>
++            <p>Send your payment to:</p>
++
++            <div style="text-align:center;margin:14px 0;">
++                <b style="font-size:1.15rem;letter-spacing:.03em;">0917 000 0000</b><br>
++                <span style="font-size:.85rem;color:var(--muted);">WonderPark Amusement Com Inc. &ndash; Lipa</span>
++            </div>
++
++            <p style="font-size:11.5px;color:var(--muted);margin-top:8px;">
++                After paying, upload a screenshot or photo of your GCash payment confirmation below, then tap "Send Receipt". We'll verify and confirm your booking shortly.
++            </p>
++
++            <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px;">
++                <label for="gcashReceiptInput" style="font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;">Payment receipt</label>
++                <input type="file" name="gcash_receipt" id="gcashReceiptInput" accept="image/*">
++                <span id="gcashReceiptFileName" style="font-size:11.5px;color:var(--muted);"></span>
++            </div>
+         </div>
+ 
+         <button type="submit" class="u-btn" id="paymentSubmitBtn" style="margin-top:18px;width:100%;" disabled>
+@@ -244,7 +259,7 @@
+ <script>
+     function togglePaymentPanels(method) {
+         document.getElementById('qrphPanel').style.display = method === 'qrph' ? 'block' : 'none';
+-        document.getElementById('cashPanel').style.display = method === 'cash' ? 'block' : 'none';
++        document.getElementById('gcashPanel').style.display = method === 'gcash' ? 'block' : 'none';
+ 
+         document.querySelectorAll('.payment-option').forEach(function (el) {
+             const isSelected = el.dataset.method === method;
+@@ -259,13 +274,14 @@
+         const btn = document.getElementById('paymentSubmitBtn');
+         const label = document.getElementById('submitLabel');
+         const receiptInput = document.getElementById('receiptInput');
++        const gcashReceiptInput = document.getElementById('gcashReceiptInput');
+ 
+-        if (method === 'cash') {
+-            label.textContent = 'Confirm Cash Payment';
+-            btn.disabled = false;
+-        } else if (method === 'qrph') {
++        if (method === 'qrph') {
+             label.textContent = 'Send Receipt';
+             btn.disabled = !(receiptInput && receiptInput.files && receiptInput.files.length > 0);
++        } else if (method === 'gcash') {
++            label.textContent = 'Send Receipt';
++            btn.disabled = !(gcashReceiptInput && gcashReceiptInput.files && gcashReceiptInput.files.length > 0);
+         } else {
+             label.textContent = 'Select a payment method';
+             btn.disabled = true;
+@@ -287,6 +303,14 @@
+             const checkedNow = document.querySelector('input[name="payment_method"]:checked');
+             updateSubmitState(checkedNow ? checkedNow.value : null);
+         });
++
++        const gcashReceiptInput = document.getElementById('gcashReceiptInput');
++        gcashReceiptInput?.addEventListener('change', function () {
++            const nameEl = document.getElementById('gcashReceiptFileName');
++            nameEl.textContent = this.files && this.files.length ? this.files[0].name : '';
++            const checkedNow = document.querySelector('input[name="payment_method"]:checked');
++            updateSubmitState(checkedNow ? checkedNow.value : null);
++        });
+     });
+ </script>
+ <script>
+@@ -305,15 +329,13 @@
+ 
+     function methodLabel(method) {
+         if (method === 'qrph') return 'QR Ph';
+-        if (method === 'cash') return 'Cash on-site';
++        if (method === 'gcash') return 'GCash';
+         return '—';
+     }
+ 
+     function openModal(method) {
+         confirmPaymentMethodText.textContent = methodLabel(method);
+-        paymentModalSub.textContent = method === 'qrph'
+-            ? 'Your uploaded receipt will be sent for verification.'
+-            : 'Your slot stays reserved as "Pending payment" until you pay at the counter.';
++        paymentModalSub.textContent = 'Your uploaded receipt will be sent for verification.';
+         overlay.classList.add('active');
+     }
+ 
+@@ -328,9 +350,7 @@
+                 e.preventDefault();
+                 return;
+             }
+-            var loadingLabel = document.querySelector('input[name="payment_method"]:checked')?.value === 'qrph'
+-                ? 'Sending Receipt...'
+-                : 'Confirming...';
++            var loadingLabel = 'Sending Receipt...';
+             submitBtn.disabled = true;
+             submitBtn.classList.add('is-loading');
+             submitBtn.innerHTML = '<span class="btn-spinner"></span> ' + loadingLabel;
+@@ -360,6 +380,14 @@
+                 return;
+             }
+         }
++
++        if (checked.value === 'gcash') {
++            var gcashReceiptInput = document.getElementById('gcashReceiptInput');
++            if (!gcashReceiptInput || !gcashReceiptInput.files || !gcashReceiptInput.files.length) {
++                alert('Please upload your GCash payment receipt first.');
++                return;
++            }
++        }
+ 
+         openModal(checked.value);
+     });
+--- /dev/null
++++ b/database/migrations/2026_09_15_000001_add_voucher_code_to_bookings_table.php
+@@ -0,0 +1,26 @@
++<?php
++
++use Illuminate\Database\Migrations\Migration;
++use Illuminate\Database\Schema\Blueprint;
++use Illuminate\Support\Facades\Schema;
++
++return new class extends Migration
++{
++    public function up(): void
++    {
++        Schema::table('bookings', function (Blueprint $table) {
++            // Generated once the customer signs the waiver (booking is
++            // confirmed). Shown on the receipt + My Bookings list; the
++            // cashier looks this up at the counter to claim the booking.
++            $table->string('voucher_code', 20)->nullable()->unique()->after('status');
++        });
++    }
++
++    public function down(): void
++    {
++        Schema::table('bookings', function (Blueprint $table) {
++            $table->dropUnique(['voucher_code']);
++            $table->dropColumn('voucher_code');
++        });
++    }
++};

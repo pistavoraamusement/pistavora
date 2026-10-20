@@ -1,0 +1,959 @@
+[INFO] checking for stdio.h... 
+[INFO] yes
+
+[INFO] checking for stdlib.h... 
+[INFO] yes
+
+[INFO] checking for string.h... 
+[INFO] yes
+
+[INFO] checking for inttypes.h... 
+[INFO] yes
+
+[INFO] checking for stdint.h... 
+[INFO] yes
+
+[INFO] checking for strings.h... 
+[INFO] yes
+
+[INFO] checking for sys/stat.h... 
+[INFO] yes
+
+[INFO] checking for sys/types.h... 
+[INFO] yes
+
+[INFO] checking for unistd.h... 
+[INFO] yes
+
+[INFO] checking for dlfcn.h... 
+[INFO] yes
+
+[INFO] checking the maximum length of command line arguments... 
+[INFO] 1572864
+checking command to parse /usr/bin/nm -B output from cc object... 
+[INFO] ok
+checking for objdir... 
+[INFO] .libs
+
+[INFO] checking for ar... 
+[INFO] ar
+
+[INFO] checking for ranlib... 
+[INFO] ranlib
+
+[INFO] checking for strip... 
+[INFO] strip
+
+[INFO] checking if cc supports -fno-rtti -fno-exceptions... 
+[INFO] no
+
+[INFO] checking for cc option to produce PIC... 
+[INFO] -fPIC
+
+[INFO] checking if cc PIC flag -fPIC works... 
+[INFO] yes
+
+[INFO] checking if cc static flag -static works... 
+[INFO] yes
+checking if cc supports -c -o file.o... 
+[INFO] yes
+
+[INFO] checking whether the cc linker (/usr/bin/ld -m elf_x86_64) supports shared libraries... 
+[INFO] yes
+
+[INFO] checking whether -lc should be explicitly linked in... 
+[INFO] no
+
+[INFO] checking dynamic linker characteristics... 
+[INFO] GNU/Linux ld.so
+
+[INFO] checking how to hardcode library paths into programs... 
+[INFO] immediate
+
+[INFO] checking whether stripping libraries is possible... 
+[INFO] yes
+
+[INFO] checking if libtool supports shared libraries... yes
+
+[INFO] checking whether to build shared libraries... 
+[INFO] yes
+
+[INFO] checking whether to build static libraries... 
+[INFO] no
+
+[INFO] 
+creating libtool
+
+[INFO] appending configuration tag "CXX" to libtool
+
+[INFO] configure: patching config.h.in
+
+[INFO] configure: creating ./config.status
+
+[INFO] config.status: creating config.h
+
+[INFO] /bin/bash /usr/src/php/ext/zip/libtool --tag=CC --mode=compile cc -I. -I/usr/src/php/ext/zip -I/usr/src/php/ext/zip/include -I/usr/src/php/ext/zip/main -I/usr/src/php/ext/zip -I/usr/local/include/php -I/usr/local/include/php/main -I/usr/local/include/php/TSRM -I/usr/local/include/php/Zend -I/usr/local/include/php/ext -I/usr/local/include/php/ext/date/lib  -DHAVE_CONFIG_H   -D_GNU_SOURCE    -DZEND_COMPILE_DL_EXT=1 -c /usr/src/php/ext/zip/php_zip.c -o php_zip.lo  -MMD -MF php_zip.dep -MT php_zip.lo
+
+[INFO] /bin/bash /usr/src/php/ext/zip/libtool --tag=CC --mode=compile cc -I. -I/usr/src/php/ext/zip -I/usr/src/php/ext/zip/include -I/usr/src/php/ext/zip/main -I/usr/src/php/ext/zip -I/usr/local/include/php -I/usr/local/include/php/main -I/usr/local/include/php/TSRM -I/usr/local/include/php/Zend -I/usr/local/include/php/ext -I/usr/local/include/php/ext/date/lib  -DHAVE_CONFIG_H   -D_GNU_SOURCE    -DZEND_COMPILE_DL_EXT=1 -c /usr/src/php/ext/zip/zip_stream.c -o zip_stream.lo  -MMD -MF zip_stream.dep -MT zip_stream.lo
+
+[INFO] mkdir .libs
+
+[INFO] mkdir .libs
+
+[INFO] mkdir: cannot create directory '.libs': File exists
+
+[INFO]  cc -I. -I/usr/src/php/ext/zip -I/usr/src/php/ext/zip/include -I/usr/src/php/ext/zip/main -I/usr/src/php/ext/zip -I/usr/local/include/php -I/usr/local/include/php/main -I/usr/local/include/php/TSRM -I/usr/local/include/php/Zend -I/usr/local/include/php/ext -I/usr/local/include/php/ext/date/lib -DHAVE_CONFIG_H -D_GNU_SOURCE -DZEND_COMPILE_DL_EXT=1 -c /usr/src/php/ext/zip/zip_stream.c -MMD -MF zip_stream.dep -MT zip_stream.lo  -fPIC -DPIC -o .libs/zip_stream.o
+
+[INFO]  cc -I. -I/usr/src/php/ext/zip -I/usr/src/php/ext/zip/include -I/usr/src/php/ext/zip/main -I/usr/src/php/ext/zip -I/usr/local/include/php -I/usr/local/include/php/main -I/usr/local/include/php/TSRM -I/usr/local/include/php/Zend -I/usr/local/include/php/ext -I/usr/local/include/php/ext/date/lib -DHAVE_CONFIG_H -D_GNU_SOURCE -DZEND_COMPILE_DL_EXT=1 -c /usr/src/php/ext/zip/php_zip.c -MMD -MF php_zip.dep -MT php_zip.lo  -fPIC -DPIC -o .libs/php_zip.o
+
+[INFO] /bin/bash /usr/src/php/ext/zip/libtool --tag=CC --mode=link cc -shared -I/usr/src/php/ext/zip/include -I/usr/src/php/ext/zip/main -I/usr/src/php/ext/zip -I/usr/local/include/php -I/usr/local/include/php/main -I/usr/local/include/php/TSRM -I/usr/local/include/php/Zend -I/usr/local/include/php/ext -I/usr/local/include/php/ext/date/lib  -DHAVE_CONFIG_H   -D_GNU_SOURCE    -o zip.la -export-dynamic -avoid-version -prefer-pic -module -rpath /usr/src/php/ext/zip/modules  php_zip.lo zip_stream.lo -lzip
+
+[INFO] cc -shared  .libs/php_zip.o .libs/zip_stream.o  -lzip  -Wl,-soname -Wl,zip.so -o .libs/zip.so
+
+[INFO] creating zip.la
+
+[INFO] (cd .libs && rm -f zip.la && ln -s ../zip.la zip.la)
+
+[INFO] /bin/bash /usr/src/php/ext/zip/libtool --tag=CC --mode=install cp ./zip.la /usr/src/php/ext/zip/modules
+
+[INFO] cp ./.libs/zip.so /usr/src/php/ext/zip/modules/zip.so
+
+[INFO] cp ./.libs/zip.lai /usr/src/php/ext/zip/modules/zip.la
+
+[INFO] PATH="$PATH:/sbin" ldconfig -n /usr/src/php/ext/zip/modules
+
+[INFO] ----------------------------------------------------------------------
+
+[INFO] Libraries have been installed in:
+
+[INFO]    /usr/src/php/ext/zip/modules
+
+
+[INFO] If you ever happen to want to link against installed libraries
+in a given directory, LIBDIR, you must either use libtool, and
+
+[INFO] specify the full pathname of the library, or use the `-LLIBDIR'
+flag during linking and do at least one of the following:
+   - add LIBDIR to the `LD_LIBRARY_PATH' environment variable
+     during execution
+
+[INFO]    - add LIBDIR to the `LD_RUN_PATH' environment variable
+     during linking
+
+[INFO]    - use the `-Wl,--rpath -Wl,LIBDIR' linker flag
+
+[INFO]    - have your system administrator add LIBDIR to `/etc/ld.so.conf'
+
+
+[INFO] See any operating system documentation about shared libraries for
+
+[INFO] more information, such as the ld(1) and ld.so(8) manual pages.
+
+[INFO] ----------------------------------------------------------------------
+
+[INFO] 
+[INFO] Build complete.
+
+[INFO] Don't forget to run 'make test'.
+
+[INFO] 
+[INFO] + strip --strip-all modules/zip.so
+
+[INFO] Installing shared extensions:     /usr/local/lib/php/extensions/no-debug-zts-20220829/
+
+[INFO] find . -name \*.gcno -o -name \*.gcda | xargs rm -f
+
+[INFO] find . -name \*.lo -o -name \*.o -o -name \*.dep | xargs rm -f
+
+[INFO] find . -name \*.la -o -name \*.a | xargs rm -f
+
+[INFO] find . -name \*.so | xargs rm -f
+
+[INFO] find . -name .libs -a -type d|xargs rm -rf
+
+[INFO] rm -f libphp.la      modules/* libs/*
+
+[INFO] rm -f ext/opcache/jit/zend_jit_x86.c
+
+[INFO] rm -f ext/opcache/jit/zend_jit_arm64.c
+
+[INFO] rm -f ext/opcache/minilua
+
+[INFO] ### REMOVING UNNEEDED PACKAGES ###
+
+[INFO] Reading package lists...
+[INFO] 
+[INFO] Building dependency tree...
+[INFO] 
+Reading state information...
+[INFO] 
+[INFO] The following packages will be REMOVED:
+
+[INFO]   cmake* cmake-data* libaom-dev* libarchive13* libavif-dev* libbrotli-dev*
+
+[INFO]   libbz2-dev* libdav1d-dev* libfreetype-dev* libfreetype6-dev*
+  libjpeg62-turbo-dev* libjsoncpp25* libncursesw6* libpng-dev* libproc2-0*
+
+[INFO]   libpthread-stubs0-dev* librhash0* libssl-dev* libuv1* libwebp-dev*
+  libwebpdemux2* libwebpmux3* libx11-dev* libxau-dev* libxcb1-dev*
+
+[INFO]   libxdmcp-dev* libxpm-dev* libzip-dev* procps* x11proto-dev*
+  xorg-sgml-doctools* xtrans-dev* zlib1g-dev*
+
+[INFO] 0 upgraded, 0 newly installed, 33 to remove and 0 not upgraded.
+After this operation, 80.5 MB disk space will be freed.
+
+[INFO] (Reading database ... 
+[INFO] (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%
+[INFO] (Reading database ... 75%
+[INFO] (Reading database ... 80%
+[INFO] (Reading database ... 85%
+[INFO] (Reading database ... 90%
+[INFO] (Reading database ... 95%
+[INFO] (Reading database ... 100%(Reading database ... 19386 files and directories currently installed.)
+
+[INFO] Removing cmake (3.25.1-1) ...
+
+[INFO] Removing cmake-data (3.25.1-1) ...
+
+[INFO] Removing libaom-dev:amd64 (3.6.0-1+deb12u2) ...
+
+[INFO] Removing libarchive13:amd64 (3.6.2-1+deb12u4) ...
+
+[INFO] Removing libavif-dev:amd64 (0.11.1-1+deb12u1) ...
+
+[INFO] Removing libfreetype6-dev:amd64 (2.12.1+dfsg-5+deb12u4) ...
+
+[INFO] Removing libfreetype-dev:amd64 (2.12.1+dfsg-5+deb12u4) ...
+
+[INFO] Removing libbrotli-dev:amd64 (1.0.9-2+b6) ...
+
+[INFO] Removing libbz2-dev:amd64 (1.0.8-5+b1) ...
+
+[INFO] Removing libdav1d-dev:amd64 (1.0.0-2+deb12u1) ...
+
+[INFO] Removing libjpeg62-turbo-dev:amd64 (1:2.1.5-2) ...
+
+[INFO] Removing libjsoncpp25:amd64 (1.9.5-4) ...
+
+[INFO] Removing procps (2:4.0.2-3) ...
+
+[INFO] Removing libncursesw6:amd64 (6.4-4) ...
+
+[INFO] Removing libpng-dev:amd64 (1.6.39-2+deb12u5) ...
+
+[INFO] Removing libproc2-0:amd64 (2:4.0.2-3) ...
+
+[INFO] Removing libxpm-dev:amd64 (1:3.5.12-1.1+deb12u1) ...
+
+[INFO] Removing libx11-dev:amd64 (2:1.8.4-2+deb12u2) ...
+
+[INFO] Removing libxcb1-dev:amd64 (1.15-1) ...
+
+[INFO] Removing libpthread-stubs0-dev:amd64 (0.4-1) ...
+
+[INFO] Removing librhash0:amd64 (1.4.3-3) ...
+
+[INFO] Removing libssl-dev:amd64 (3.0.20-1~deb12u2) ...
+
+[INFO] Removing libuv1:amd64 (1.44.2-1+deb12u1) ...
+
+[INFO] Removing libwebp-dev:amd64 (1.2.4-0.2+deb12u1) ...
+
+[INFO] Removing libwebpdemux2:amd64 (1.2.4-0.2+deb12u1) ...
+
+[INFO] Removing libwebpmux3:amd64 (1.2.4-0.2+deb12u1) ...
+
+[INFO] Removing libxau-dev:amd64 (1:1.0.9-1) ...
+
+[INFO] Removing libxdmcp-dev:amd64 (1:1.1.2-3) ...
+
+[INFO] Removing libzip-dev:amd64 (1.7.3-1+b1) ...
+
+[INFO] Removing x11proto-dev (2022.1-1) ...
+
+[INFO] Removing xorg-sgml-doctools (1:1.11-1.1) ...
+
+[INFO] Removing xtrans-dev (1.4.0-1) ...
+
+[INFO] Removing zlib1g-dev:amd64 (1:1.2.13.dfsg-1) ...
+
+[INFO] Processing triggers for libc-bin (2.36-9+deb12u14) ...
+
+[INFO] ldconfig: /usr/local/lib/libwatcher-c.so.0 is not a symbolic link
+
+
+[INFO] (Reading database ... 
+[INFO] (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%
+[INFO] (Reading database ... 75%
+[INFO] (Reading database ... 80%
+[INFO] (Reading database ... 85%
+[INFO] (Reading database ... 90%
+[INFO] (Reading database ... 95%
+[INFO] (Reading database ... 100%(Reading database ... 15083 files and directories currently installed.)
+
+[INFO] Purging configuration files for procps (2:4.0.2-3) ...
+
+[INFO] Purging configuration files for cmake-data (3.25.1-1) ...
+
+[INFO] ### RESTORING PREVIOUSLY INSTALLED PACKAGES ###
+
+[INFO] install-php-extensions gd zip ctype curl dom fileinfo filter hash mbstring openssl pcre pdo session tokenizer xml
+[INFO] copy /usr/bin/composer
+[INFO] copy /usr/bin/composer
+[INFO] copy composer.json
+[INFO] copy composer.json
+[INFO] copy composer.lock
+[INFO] copy composer.lock
+[INFO] copy artisan
+[INFO] copy artisan
+[INFO] composer install --optimize-autoloader --no-scripts --no-interaction
+[INFO] Composer plugins have been disabled for safety in this non-interactive session.
+Set COMPOSER_ALLOW_SUPERUSER=1 if you want to allow plugins to run as root/super user.
+Do not run Composer as root/super user! See https://getcomposer.org/root for details
+
+[INFO] Installing dependencies from lock file (including require-dev)
+
+[INFO] Verifying lock file contents can be installed on current platform.
+
+[INFO] Package operations: 129 installs, 0 updates, 0 removals
+
+[INFO]   - Downloading voku/portable-ascii (2.1.1)
+
+[INFO]   - Downloading symfony/polyfill-php80 (v1.37.0)
+
+[INFO]   - Downloading symfony/polyfill-mbstring (v1.38.2)
+
+[INFO]   - Downloading symfony/polyfill-ctype (v1.37.0)
+
+[INFO]   - Downloading phpoption/phpoption (1.9.5)
+
+[INFO]   - Downloading graham-campbell/result-type (v1.1.4)
+
+[INFO]   - Downloading vlucas/phpdotenv (v5.6.3)
+
+[INFO]   - Downloading symfony/css-selector (v7.4.9)
+
+[INFO]   - Downloading tijsverkoyen/css-to-inline-styles (v2.4.0)
+
+[INFO]   - Downloading symfony/deprecation-contracts (v3.7.1)
+
+[INFO]   - Downloading symfony/var-dumper (v7.4.14)
+
+[INFO]   - Downloading symfony/polyfill-uuid (v1.37.0)
+
+[INFO]   - Downloading symfony/uid (v7.4.9)
+
+[INFO]   - Downloading symfony/routing (v7.4.13)
+
+[INFO]   - Downloading symfony/process (v7.4.13)
+
+[INFO]   - Downloading symfony/polyfill-php85 (v1.38.1)
+
+[INFO]   - Downloading symfony/polyfill-php84 (v1.38.1)
+
+[INFO]   - Downloading symfony/polyfill-php83 (v1.38.2)
+
+[INFO]   - Downloading symfony/polyfill-intl-normalizer (v1.38.0)
+
+[INFO]   - Downloading symfony/polyfill-intl-idn (v1.38.1)
+
+[INFO]   - Downloading symfony/mime (v7.4.13)
+
+[INFO]   - Downloading psr/container (2.0.2)
+
+[INFO]   - Downloading symfony/service-contracts (v3.7.1)
+
+[INFO]   - Downloading psr/event-dispatcher (1.0.0)
+
+[INFO]   - Downloading symfony/event-dispatcher-contracts (v3.7.1)
+
+[INFO]   - Downloading symfony/event-dispatcher (v7.4.14)
+
+[INFO]   - Downloading psr/log (3.0.2)
+
+[INFO]   - Downloading doctrine/lexer (3.0.1)
+
+[INFO]   - Downloading egulias/email-validator (4.0.4)
+
+[INFO]   - Downloading symfony/mailer (v7.4.14)
+
+[INFO]   - Downloading symfony/http-foundation (v7.4.14)
+
+[INFO]   - Downloading symfony/error-handler (v7.4.14)
+
+[INFO]   - Downloading symfony/http-kernel (v7.4.14)
+
+[INFO]   - Downloading symfony/finder (v7.4.14)
+
+[INFO]   - Downloading symfony/polyfill-intl-grapheme (v1.38.1)
+
+[INFO]   - Downloading symfony/string (v7.4.13)
+
+[INFO]   - Downloading symfony/console (v7.4.14)
+
+[INFO]   - Downloading ramsey/collection (2.1.1)
+
+[INFO]   - Downloading brick/math (0.14.8)
+
+[INFO]   - Downloading ramsey/uuid (4.9.3)
+
+[INFO]   - Downloading psr/simple-cache (3.0.0)
+
+[INFO]   - Downloading nunomaduro/termwind (v2.4.0)
+
+[INFO]   - Downloading symfony/translation-contracts (v3.7.1)
+
+[INFO]   - Downloading symfony/translation (v7.4.14)
+
+[INFO]   - Downloading psr/clock (1.0.0)
+
+[INFO]   - Downloading symfony/clock (v7.4.8)
+
+[INFO]   - Downloading carbonphp/carbon-doctrine-types (3.2.0)
+
+[INFO]   - Downloading nesbot/carbon (3.13.0)
+
+[INFO]   - Downloading monolog/monolog (3.10.0)
+
+[INFO]   - Downloading psr/http-message (2.0)
+
+[INFO]   - Downloading psr/http-factory (1.1.0)
+
+[INFO]   - Downloading league/uri-interfaces (7.8.1)
+
+[INFO]   - Downloading league/uri (7.8.1)
+
+[INFO]   - Downloading league/mime-type-detection (1.16.0)
+
+[INFO]   - Downloading league/flysystem-local (3.31.0)
+
+[INFO]   - Downloading league/flysystem (3.35.1)
+
+[INFO]   - Downloading nette/utils (v4.1.4)
+
+[INFO]   - Downloading nette/schema (v1.3.5)
+
+[INFO]   - Downloading dflydev/dot-access-data (v3.0.3)
+
+[INFO]   - Downloading league/config (v1.2.0)
+
+[INFO]   - Downloading league/commonmark (2.8.2)
+
+[INFO]   - Downloading laravel/serializable-closure (v2.0.13)
+
+[INFO]   - Downloading laravel/prompts (v0.3.21)
+
+[INFO]   - Downloading guzzlehttp/uri-template (v1.0.8)
+
+[INFO]   - Downloading psr/http-client (1.0.3)
+
+[INFO]   - Downloading ralouphie/getallheaders (3.0.3)
+
+[INFO]   - Downloading guzzlehttp/psr7 (2.12.3)
+
+[INFO]   - Downloading guzzlehttp/promises (2.5.0)
+
+[INFO]   - Downloading guzzlehttp/guzzle (7.13.2)
+
+[INFO]   - Downloading fruitcake/php-cors (v1.4.0)
+
+[INFO]   - Downloading dragonmantank/cron-expression (v3.6.0)
+
+[INFO]   - Downloading doctrine/inflector (2.1.0)
+
+[INFO]   - Downloading laravel/framework (v12.62.0)
+
+[INFO]   - Downloading composer/pcre (3.4.0)
+
+[INFO]   - Downloading composer/class-map-generator (1.7.3)
+
+[INFO]   - Downloading barryvdh/reflection-docblock (v2.4.1)
+
+[INFO]   - Downloading barryvdh/laravel-ide-helper (v3.7.0)
+
+[INFO]   - Downloading psr/cache (3.0.0)
+
+[INFO]   - Downloading doctrine/deprecations (1.1.6)
+
+[INFO]   - Downloading doctrine/dbal (4.4.3)
+
+[INFO]   - Downloading fakerphp/faker (v1.24.1)
+
+[INFO]   - Downloading laravel/pail (v1.2.7)
+
+[INFO]   - Downloading laravel/pint (v1.29.3)
+
+[INFO]   - Downloading symfony/yaml (v7.4.14)
+
+[INFO]   - Downloading laravel/sail (v1.63.0)
+
+[INFO]   - Downloading laravel/sanctum (v4.3.2)
+
+[INFO]   - Downloading paragonie/random_compat (v9.99.100)
+
+[INFO]   - Downloading paragonie/constant_time_encoding (v3.1.3)
+
+[INFO]   - Downloading phpseclib/phpseclib (3.0.55)
+
+[INFO]   - Downloading league/oauth1-client (v1.11.0)
+
+[INFO]   - Downloading firebase/php-jwt (v7.1.0)
+
+[INFO]   - Downloading laravel/socialite (v5.28.0)
+
+[INFO]   - Downloading nikic/php-parser (v5.8.0)
+
+[INFO]   - Downloading psy/psysh (v0.12.24)
+
+[INFO]   - Downloading laravel/tinker (v2.11.1)
+
+[INFO]   - Downloading hamcrest/hamcrest-php (v2.1.1)
+
+[INFO]   - Downloading mockery/mockery (1.6.12)
+
+[INFO]   - Downloading filp/whoops (2.18.4)
+
+[INFO]   - Downloading nunomaduro/collision (v8.9.4)
+
+[INFO]   - Downloading markbaker/matrix (3.0.1)
+
+[INFO]   - Downloading markbaker/complex (3.0.2)
+
+[INFO]   - Downloading maennchen/zipstream-php (3.1.2)
+
+[INFO]   - Downloading phpoffice/phpspreadsheet (5.8.0)
+
+[INFO]   - Downloading staabm/side-effects-detector (1.0.5)
+
+[INFO]   - Downloading sebastian/version (5.0.2)
+
+[INFO]   - Downloading sebastian/type (5.1.3)
+
+[INFO]   - Downloading sebastian/recursion-context (6.0.3)
+
+[INFO]   - Downloading sebastian/object-reflector (4.0.1)
+
+[INFO]   - Downloading sebastian/object-enumerator (6.0.1)
+
+[INFO]   - Downloading sebastian/global-state (7.0.2)
+
+[INFO]   - Downloading sebastian/exporter (6.3.2)
+
+[INFO]   - Downloading sebastian/environment (7.2.1)
+
+[INFO]   - Downloading sebastian/diff (6.0.2)
+
+[INFO]   - Downloading sebastian/comparator (6.3.3)
+
+[INFO]   - Downloading sebastian/code-unit (3.0.3)
+
+[INFO]   - Downloading sebastian/cli-parser (3.0.2)
+
+[INFO]   - Downloading phpunit/php-timer (7.0.1)
+
+[INFO]   - Downloading phpunit/php-text-template (4.0.1)
+
+[INFO]   - Downloading phpunit/php-invoker (5.0.1)
+
+[INFO]   - Downloading phpunit/php-file-iterator (5.1.1)
+
+[INFO]   - Downloading theseer/tokenizer (1.3.1)
+
+[INFO]   - Downloading sebastian/lines-of-code (3.0.1)
+
+[INFO]   - Downloading sebastian/complexity (4.0.1)
+
+[INFO]   - Downloading sebastian/code-unit-reverse-lookup (4.0.1)
+
+[INFO]   - Downloading phpunit/php-code-coverage (11.0.12)
+
+[INFO]   - Downloading phar-io/version (3.2.1)
+
+[INFO]   - Downloading phar-io/manifest (2.0.4)
+
+[INFO]   - Downloading myclabs/deep-copy (1.13.4)
+
+[INFO]   - Downloading phpunit/phpunit (11.5.55)
+
+[INFO]    0/129 [>---------------------------]   0%
+[INFO] 
+  19/129 [====>-----------------------]  14%
+[INFO] 
+  33/129 [=======>--------------------]  25%
+[INFO] 
+  42/129 [=========>------------------]  32%
+[INFO] 
+  55/129 [===========>----------------]  42%
+[INFO] 
+  69/129 [==============>-------------]  53%
+[INFO] 
+  79/129 [=================>----------]  61%
+[INFO] 
+  98/129 [=====================>------]  75%
+[INFO] 
+ 106/129 [=======================>----]  82%
+[INFO] 
+ 121/129 [==========================>-]  93%
+[INFO] 
+ 129/129 [============================] 100%
+
+[INFO]   - Installing voku/portable-ascii (2.1.1): Extracting archive
+
+[INFO]   - Installing symfony/polyfill-php80 (v1.37.0): Extracting archive
+
+[INFO]   - Installing symfony/polyfill-mbstring (v1.38.2): Extracting archive
+
+[INFO]   - Installing symfony/polyfill-ctype (v1.37.0): Extracting archive
+
+[INFO]   - Installing phpoption/phpoption (1.9.5): Extracting archive
+
+[INFO]   - Installing graham-campbell/result-type (v1.1.4): Extracting archive
+
+[INFO]   - Installing vlucas/phpdotenv (v5.6.3): Extracting archive
+
+[INFO]   - Installing symfony/css-selector (v7.4.9): Extracting archive
+
+[INFO]   - Installing tijsverkoyen/css-to-inline-styles (v2.4.0): Extracting archive
+
+[INFO]   - Installing symfony/deprecation-contracts (v3.7.1): Extracting archive
+
+[INFO]   - Installing symfony/var-dumper (v7.4.14): Extracting archive
+
+[INFO]   - Installing symfony/polyfill-uuid (v1.37.0): Extracting archive
+
+[INFO]   - Installing symfony/uid (v7.4.9): Extracting archive
+
+[INFO]   - Installing symfony/routing (v7.4.13): Extracting archive
+
+[INFO]   - Installing symfony/process (v7.4.13): Extracting archive
+
+[INFO]   - Installing symfony/polyfill-php85 (v1.38.1): Extracting archive
+
+[INFO]   - Installing symfony/polyfill-php84 (v1.38.1): Extracting archive
+
+[INFO]   - Installing symfony/polyfill-php83 (v1.38.2): Extracting archive
+
+[INFO]   - Installing symfony/polyfill-intl-normalizer (v1.38.0): Extracting archive
+
+[INFO]   - Installing symfony/polyfill-intl-idn (v1.38.1): Extracting archive
+
+[INFO]   - Installing symfony/mime (v7.4.13): Extracting archive
+
+[INFO]   - Installing psr/container (2.0.2): Extracting archive
+
+[INFO]   - Installing symfony/service-contracts (v3.7.1): Extracting archive
+
+[INFO]   - Installing psr/event-dispatcher (1.0.0): Extracting archive
+
+[INFO]   - Installing symfony/event-dispatcher-contracts (v3.7.1): Extracting archive
+
+[INFO]   - Installing symfony/event-dispatcher (v7.4.14): Extracting archive
+
+[INFO]   - Installing psr/log (3.0.2): Extracting archive
+
+[INFO]   - Installing doctrine/lexer (3.0.1): Extracting archive
+
+[INFO]   - Installing egulias/email-validator (4.0.4): Extracting archive
+
+[INFO]   - Installing symfony/mailer (v7.4.14): Extracting archive
+
+[INFO]   - Installing symfony/http-foundation (v7.4.14): Extracting archive
+
+[INFO]   - Installing symfony/error-handler (v7.4.14): Extracting archive
+
+[INFO]   - Installing symfony/http-kernel (v7.4.14): Extracting archive
+
+[INFO]   - Installing symfony/finder (v7.4.14): Extracting archive
+
+[INFO]   - Installing symfony/polyfill-intl-grapheme (v1.38.1): Extracting archive
+
+[INFO]   - Installing symfony/string (v7.4.13): Extracting archive
+
+[INFO]   - Installing symfony/console (v7.4.14): Extracting archive
+
+[INFO]   - Installing ramsey/collection (2.1.1): Extracting archive
+
+[INFO]   - Installing brick/math (0.14.8): Extracting archive
+
+[INFO]   - Installing ramsey/uuid (4.9.3): Extracting archive
+
+[INFO]   - Installing psr/simple-cache (3.0.0): Extracting archive
+
+[INFO]   - Installing nunomaduro/termwind (v2.4.0): Extracting archive
+
+[INFO]   - Installing symfony/translation-contracts (v3.7.1): Extracting archive
+
+[INFO]   - Installing symfony/translation (v7.4.14): Extracting archive
+
+[INFO]   - Installing psr/clock (1.0.0): Extracting archive
+  - Installing symfony/clock (v7.4.8): Extracting archive
+  - Installing carbonphp/carbon-doctrine-types (3.2.0): Extracting archive
+
+[INFO]   - Installing nesbot/carbon (3.13.0): Extracting archive
+
+[INFO]   - Installing monolog/monolog (3.10.0): Extracting archive
+
+[INFO]   - Installing psr/http-message (2.0): Extracting archive
+
+[INFO]   - Installing psr/http-factory (1.1.0): Extracting archive
+
+[INFO]   - Installing league/uri-interfaces (7.8.1): Extracting archive
+
+[INFO]   - Installing league/uri (7.8.1): Extracting archive
+
+[INFO]   - Installing league/mime-type-detection (1.16.0): Extracting archive
+
+[INFO]   - Installing league/flysystem-local (3.31.0): Extracting archive
+
+[INFO]   - Installing league/flysystem (3.35.1): Extracting archive
+
+[INFO]   - Installing nette/utils (v4.1.4): Extracting archive
+
+[INFO]   - Installing nette/schema (v1.3.5): Extracting archive
+
+[INFO]   - Installing dflydev/dot-access-data (v3.0.3): Extracting archive
+
+[INFO]   - Installing league/config (v1.2.0): Extracting archive
+
+[INFO]   - Installing league/commonmark (2.8.2): Extracting archive
+
+[INFO]   - Installing laravel/serializable-closure (v2.0.13): Extracting archive
+
+[INFO]   - Installing laravel/prompts (v0.3.21): Extracting archive
+
+[INFO]   - Installing guzzlehttp/uri-template (v1.0.8): Extracting archive
+
+[INFO]   - Installing psr/http-client (1.0.3): Extracting archive
+
+[INFO]   - Installing ralouphie/getallheaders (3.0.3): Extracting archive
+
+[INFO]   - Installing guzzlehttp/psr7 (2.12.3): Extracting archive
+
+[INFO]   - Installing guzzlehttp/promises (2.5.0): Extracting archive
+
+[INFO]   - Installing guzzlehttp/guzzle (7.13.2): Extracting archive
+
+[INFO]   - Installing fruitcake/php-cors (v1.4.0): Extracting archive
+
+[INFO]   - Installing dragonmantank/cron-expression (v3.6.0): Extracting archive
+
+[INFO]   - Installing doctrine/inflector (2.1.0): Extracting archive
+
+[INFO]   - Installing laravel/framework (v12.62.0): Extracting archive
+
+[INFO]   - Installing composer/pcre (3.4.0): Extracting archive
+
+[INFO]   - Installing composer/class-map-generator (1.7.3): Extracting archive
+
+[INFO]   - Installing barryvdh/reflection-docblock (v2.4.1): Extracting archive
+
+[INFO]   - Installing barryvdh/laravel-ide-helper (v3.7.0): Extracting archive
+
+[INFO]   - Installing psr/cache (3.0.0): Extracting archive
+
+[INFO]   - Installing doctrine/deprecations (1.1.6): Extracting archive
+
+[INFO]   - Installing doctrine/dbal (4.4.3): Extracting archive
+
+[INFO]   - Installing fakerphp/faker (v1.24.1): Extracting archive
+
+[INFO]   - Installing laravel/pail (v1.2.7): Extracting archive
+
+[INFO]   - Installing laravel/pint (v1.29.3): Extracting archive
+
+[INFO]   - Installing symfony/yaml (v7.4.14): Extracting archive
+
+[INFO]   - Installing laravel/sail (v1.63.0): Extracting archive
+
+[INFO]   - Installing laravel/sanctum (v4.3.2): Extracting archive
+
+[INFO]   - Installing paragonie/random_compat (v9.99.100): Extracting archive
+
+[INFO]   - Installing paragonie/constant_time_encoding (v3.1.3): Extracting archive
+
+[INFO]   - Installing phpseclib/phpseclib (3.0.55): Extracting archive
+
+[INFO]   - Installing league/oauth1-client (v1.11.0): Extracting archive
+
+[INFO]   - Installing firebase/php-jwt (v7.1.0): Extracting archive
+
+[INFO]   - Installing laravel/socialite (v5.28.0): Extracting archive
+
+[INFO]   - Installing nikic/php-parser (v5.8.0): Extracting archive
+
+[INFO]   - Installing psy/psysh (v0.12.24): Extracting archive
+
+[INFO]   - Installing laravel/tinker (v2.11.1): Extracting archive
+
+[INFO]   - Installing hamcrest/hamcrest-php (v2.1.1): Extracting archive
+
+[INFO]   - Installing mockery/mockery (1.6.12): Extracting archive
+
+[INFO]   - Installing filp/whoops (2.18.4): Extracting archive
+
+[INFO]   - Installing nunomaduro/collision (v8.9.4): Extracting archive
+
+[INFO]   - Installing markbaker/matrix (3.0.1): Extracting archive
+
+[INFO]   - Installing markbaker/complex (3.0.2): Extracting archive
+
+[INFO]   - Installing maennchen/zipstream-php (3.1.2): Extracting archive
+
+[INFO]   - Installing phpoffice/phpspreadsheet (5.8.0): Extracting archive
+
+[INFO]   - Installing staabm/side-effects-detector (1.0.5): Extracting archive
+
+[INFO]   - Installing sebastian/version (5.0.2): Extracting archive
+
+[INFO]   - Installing sebastian/type (5.1.3): Extracting archive
+
+[INFO]   - Installing sebastian/recursion-context (6.0.3): Extracting archive
+
+[INFO]   - Installing sebastian/object-reflector (4.0.1): Extracting archive
+
+[INFO]   - Installing sebastian/object-enumerator (6.0.1): Extracting archive
+
+[INFO]   - Installing sebastian/global-state (7.0.2): Extracting archive
+
+[INFO]   - Installing sebastian/exporter (6.3.2): Extracting archive
+
+[INFO]   - Installing sebastian/environment (7.2.1): Extracting archive
+
+[INFO]   - Installing sebastian/diff (6.0.2): Extracting archive
+
+[INFO]   - Installing sebastian/comparator (6.3.3): Extracting archive
+
+[INFO]   - Installing sebastian/code-unit (3.0.3): Extracting archive
+
+[INFO]   - Installing sebastian/cli-parser (3.0.2): Extracting archive
+
+[INFO]   - Installing phpunit/php-timer (7.0.1): Extracting archive
+
+[INFO]   - Installing phpunit/php-text-template (4.0.1): Extracting archive
+
+[INFO]   - Installing phpunit/php-invoker (5.0.1): Extracting archive
+
+[INFO]   - Installing phpunit/php-file-iterator (5.1.1): Extracting archive
+
+[INFO]   - Installing theseer/tokenizer (1.3.1): Extracting archive
+
+[INFO]   - Installing sebastian/lines-of-code (3.0.1): Extracting archive
+
+[INFO]   - Installing sebastian/complexity (4.0.1): Extracting archive
+
+[INFO]   - Installing sebastian/code-unit-reverse-lookup (4.0.1): Extracting archive
+
+[INFO]   - Installing phpunit/php-code-coverage (11.0.12): Extracting archive
+
+[INFO]   - Installing phar-io/version (3.2.1): Extracting archive
+
+[INFO]   - Installing phar-io/manifest (2.0.4): Extracting archive
+
+[INFO]   - Installing myclabs/deep-copy (1.13.4): Extracting archive
+
+[INFO]   - Installing phpunit/phpunit (11.5.55): Extracting archive
+
+[INFO]    0/129 [>---------------------------]   0%
+[INFO] 
+  20/129 [====>-----------------------]  15%
+[INFO] 
+  29/129 [======>---------------------]  22%
+[INFO] 
+  46/129 [=========>------------------]  35%
+[INFO] 
+  56/129 [============>---------------]  43%
+[INFO] 
+  65/129 [==============>-------------]  50%
+[INFO] 
+  82/129 [=================>----------]  63%
+[INFO] 
+  93/129 [====================>-------]  72%
+[INFO] 
+ 105/129 [======================>-----]  81%
+[INFO] 
+ 118/129 [=========================>--]  91%
+[INFO] 
+ 129/129 [============================] 100%
+
+[INFO] Generating optimized autoload files
+
+[INFO] composer install --optimize-autoloader --no-scripts --no-interaction
+[INFO] install apt packages: libatomic1
+[INFO] copy /app
+[INFO] Get:1 http://deb.debian.org/debian bookworm InRelease [151 kB]
+
+[INFO] Get:2 http://deb.debian.org/debian bookworm-updates InRelease [55.4 kB]
+
+[INFO] Get:3 http://deb.debian.org/debian-security bookworm-security InRelease [34.8 kB]
+
+[INFO] Get:4 http://deb.debian.org/debian bookworm/main amd64 Packages [8790 kB]
+
+[INFO] Get:5 http://deb.debian.org/debian bookworm-updates/main amd64 Packages [6924 B]
+
+[INFO] Get:6 http://deb.debian.org/debian-security bookworm-security/main amd64 Packages [316 kB]
+
+[INFO] Fetched 9355 kB in 1s (9504 kB/s)
+Reading package lists...
+[INFO] 
+[INFO] Reading package lists...
+[INFO] 
+[INFO] Building dependency tree...
+[INFO] copy /app
+[INFO] copy /mise/shims
+[INFO] 
+Reading state information...
+
+[INFO] copy /mise/shims
+[INFO] libatomic1 is already the newest version (12.2.0-14+deb12u1).
+0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+
+[INFO] copy /mise/installs
+[INFO] install apt packages: libatomic1
+[INFO] copy /mise/installs
+[INFO] copy /usr/local/bin/mise
+[INFO] copy /usr/local/bin/mise
+[INFO] copy /etc/mise/config.toml
+[INFO] copy /etc/mise/config.toml
+[INFO] copy /root/.local/state/mise
+[INFO] copy /root/.local/state/mise
+[INFO] copy / /app
+[INFO] copy / /app
+[INFO] npm run build
+[INFO] npm warn config production Use `--omit=dev` instead.
+
+[INFO] 
+> build
+> vite build
+
+
+[INFO] ▲ [WARNING] Duplicate key "input" in object literal [duplicate-object-key]
+
+    vite.config.js:8:12:
+      8 │             input: ['resources/css/app.css', 'resources/css/landing...
+        ╵             ~~~~~
+
+  The original key "input" is here:
+
+    vite.config.js:7:12:
+      7 │             input: ['resources/css/app.css', 'resources/js/app.js'],
+        ╵             ~~~~~
+
+
+[INFO] [36mvite v7.3.5 [32mbuilding client environment for production...[36m[39m
+
+[INFO] transforming...
+
+[INFO] [32m✓[39m 1 modules transformed.
+
+[INFO] [31m✗[39m Build failed in 18ms
+
+[INFO] [31merror during build:
+[31mCould not resolve entry module "resources/css/landing.css".[31m
+    at getRollupError (file:///app/node_modules/rollup/dist/es/shared/parseAst.js:317:41)
+    at error (file:///app/node_modules/rollup/dist/es/shared/parseAst.js:313:42)
+    at ModuleLoader.loadEntryModule (file:///app/node_modules/rollup/dist/es/shared/node-entry.js:22188:20)
+    at async Promise.all (index 1)[39m
+
+[ERRO] npm run build
+Build Failed: build daemon returned an error < failed to solve: process "npm run build" did not complete successfully: exit code: 1 >

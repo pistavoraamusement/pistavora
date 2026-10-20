@@ -1,0 +1,9 @@
+laravel-app/.env.bak
+*.bak-wizard
+
+*.pem
+*.key
+laravel-app/vendor/
+node_modules/
+.env
+.env.backup

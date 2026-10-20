@@ -1,0 +1,876 @@
+/* ===========================================================
+   user-app-theme.css
+   REKS Amusement — Customer (User) App Theme
+   Publish this file at: public/css/user-app-theme.css
+   Loaded from resources/views/layouts/user.blade.php via:
+     <link rel="stylesheet" href="{{ asset('css/user-app-theme.css') }}">
+
+   REKS-FIX-v6 — Full retheme to match the admin dashboard look:
+   clean white cards on a light gray canvas, a dark sidebar with a
+   solid (not gradient) maroon active state, a serif display face
+   for page titles, and a single flat accent color used sparingly
+   instead of the previous pink "ticket" motif (gradients, dashed
+   perforations, ticket badges) throughout.
+   =========================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap');
+
+@media (prefers-reduced-motion: no-preference) {
+  :root { --motion-ok: 1; }
+}
+
+:root{
+  --u-sidebar-w:268px;
+
+  /* brand */
+  --ink:#1A1523;
+  --ink-soft:#635C72;
+  --muted:#9C94AB;
+  --line:#EEE8F0;
+  --bg:#F3EFF3;
+  --pink:#B82850;
+  --pink-dark:#9A2143;
+  --pink-deep:#B82850;
+  --pink-light:#F3D9E1;
+  --pink-pale:#FBF1F4;
+
+  /* supporting accents (used sparingly, functional only) */
+  --gold:#FFC948;
+  --gold-deep:#C77E0E;
+  --gold-pale:#FFF4DC;
+  --teal:#12B5A6;
+  --teal-deep:#0C8B80;
+  --teal-pale:#E1F7F4;
+  --amber-pale:#FDF0DC;
+  --amber-deep:#B1730A;
+  --rose-pale:#FDEAEE;
+  --rose-deep:#E24B4A;
+
+  --radius-lg:16px;
+  --radius-md:12px;
+  --radius-sm:8px;
+
+  --shadow-card:0 4px 16px -8px rgba(26,21,35,.14);
+  --shadow-pop:0 16px 40px -14px rgba(26,21,35,.28);
+
+  --font-display:'Playfair Display',Georgia,'Times New Roman',serif;
+  --font-body:'Inter',-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+
+  --ease:cubic-bezier(.2,.8,.2,1);
+}
+
+*{box-sizing:border-box;font-family:var(--font-body);}
+body{margin:0;}
+
+::selection{background:var(--pink-light);color:var(--pink-deep);}
+
+:focus-visible{outline:2px solid var(--pink-dark);outline-offset:2px;border-radius:6px;}
+
+h1,h2,h3,h4{font-family:var(--font-display);}
+
+#userView{background:var(--bg);width:100%;min-height:100vh;}
+.app-frame{display:flex;flex-direction:column;min-height:100vh;background:#fff;width:100%;}
+
+
+/* ---------- header (clean, minimal — matches admin dashboard) ---------- */
+.phone-head{
+  position:relative;
+  background:#fff;
+  color:var(--ink);
+  padding:18px 18px 16px;
+  border-bottom:1px solid var(--line);
+}
+.phone-head h2{
+  margin:2px 0 0;font-family:var(--font-display);font-size:24px;font-weight:700;
+  letter-spacing:0;color:var(--ink);
+}
+.phone-head p{
+  margin:0;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--pink);
+}
+
+/* spacer between header and body (decorative perforation removed) */
+.ticket-seam{height:0;background:transparent;flex-shrink:0;}
+.ticket-seam::before{content:none;}
+.ticket-seam span{display:none;}
+
+.app-main{display:flex;flex-direction:column;min-width:0;}
+.app-body{flex:1;padding:18px 16px;padding-bottom:112px;position:relative;background:var(--bg);width:100%;box-sizing:border-box;}
+
+/* ---------- info / section cards ---------- */
+.u-card{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:var(--radius-md);
+  padding:16px 18px;
+  margin-bottom:12px;
+  box-shadow:var(--shadow-card);
+}
+.u-card h4{margin:0 0 4px;font-size:14.5px;color:var(--ink);font-weight:700;}
+.u-card p{margin:0;font-size:12.5px;color:var(--ink-soft);line-height:1.5;}
+
+.u-card-account{display:flex;gap:12px;align-items:flex-start;}
+.u-avatar{
+  flex-shrink:0;width:42px;height:42px;border-radius:50%;
+  background:var(--u-avatar-a,var(--pink-deep));
+  color:#fff;display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-weight:700;font-size:17px;
+}
+
+/* ---------- account: profile card ---------- */
+.u-profile-card{
+  background:#fff;border:1px solid var(--line);border-radius:var(--radius-md);
+  padding:20px;margin-bottom:14px;box-shadow:var(--shadow-card);
+}
+.u-profile-top{display:flex;gap:16px;align-items:center;margin-bottom:18px;}
+.u-avatar-lg{
+  flex-shrink:0;width:64px;height:64px;border-radius:14px;
+  background:var(--u-avatar-a,var(--pink-deep));
+  color:#fff;display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-weight:700;font-size:24px;
+}
+.u-profile-top h4{margin:0 0 3px;font-size:16px;font-weight:800;color:var(--ink);}
+.u-profile-top .u-role-pill{
+  display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;
+  color:var(--pink-deep);background:var(--pink-pale);padding:3px 9px;border-radius:4px;
+}
+
+.u-field-label{font-size:11px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);margin:0 0 6px;}
+
+.u-name-row{display:flex;align-items:stretch;gap:8px;margin-bottom:16px;}
+.u-name-row .u-input{margin-bottom:0;flex:1;}
+.u-icon-btn{
+  flex-shrink:0;width:44px;border:1px solid var(--line);border-radius:var(--radius-sm);
+  background:#fff;color:var(--ink-soft);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:border-color .15s var(--ease), color .15s var(--ease), background .15s var(--ease);
+}
+.u-icon-btn svg{width:16px;height:16px;}
+.u-icon-btn:hover{border-color:var(--pink-deep);color:var(--pink-deep);background:var(--pink-pale);}
+.u-icon-btn.save{background:var(--pink-deep);color:#fff;border-color:transparent;}
+.u-icon-btn.save:hover{filter:brightness(1.05);color:#fff;}
+
+.u-swatches{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:4px;}
+.u-swatch{
+  width:34px;height:34px;border-radius:11px;cursor:pointer;position:relative;
+  border:2px solid transparent;transition:transform .15s var(--ease), border-color .15s var(--ease);
+}
+.u-swatch input{position:absolute;inset:0;opacity:0;cursor:pointer;margin:0;}
+.u-swatch:hover{transform:translateY(-1px);}
+.u-swatch:has(input:checked){border-color:var(--ink);}
+.u-swatch:has(input:checked)::after{
+  content:"✓";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:14px;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.35);
+}
+
+/* ---------- inputs / buttons ---------- */
+.u-input{
+  width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:var(--radius-sm);
+  font-size:13px;margin-bottom:10px;box-sizing:border-box;background:#fff;color:var(--ink);
+  transition:border-color .15s var(--ease), box-shadow .15s var(--ease);
+}
+.u-input::placeholder{color:var(--muted);}
+.u-input:focus{border-color:var(--pink-deep);box-shadow:0 0 0 3px var(--pink-pale);outline:none;}
+
+.u-btn{
+  width:100%;background:var(--pink-deep);
+  color:#fff;border:none;padding:13px;border-radius:var(--radius-sm);
+  font-weight:700;font-size:13.5px;cursor:pointer;text-decoration:none;
+  display:block;text-align:center;
+  transition:filter .15s var(--ease);
+}
+.u-btn:hover{filter:brightness(1.08);}
+.u-btn:active{filter:brightness(.95);}
+.u-btn.ghost{
+  background:#fff;color:var(--pink-deep);border:1px solid var(--line);
+}
+.u-btn.ghost:hover{background:var(--pink-pale);border-color:var(--pink-deep);}
+
+/* ---------- bottom nav (mobile) / sidebar (desktop) ---------- */
+.nav-brand{display:none;}
+
+.bottomnav{
+  display:flex;
+  position:fixed;left:12px;right:12px;bottom:12px;
+  background:#fff;border:1px solid var(--line);border-radius:20px;
+  box-shadow:var(--shadow-pop);
+  padding:6px 4px;
+  z-index:20;
+}
+.bottomnav .bn-item{
+  flex:1;text-align:center;padding:8px 0 7px;font-size:9.5px;color:var(--muted);
+  cursor:pointer;font-weight:600;position:relative;
+  transition:color .18s var(--ease);text-decoration:none;display:block;
+  background:none;border:none;border-radius:14px;
+}
+.bottomnav .bn-item.active{color:var(--item-color,var(--pink-deep));font-weight:700;}
+.bottomnav .bn-item .ic3{
+  display:flex;align-items:center;justify-content:center;width:32px;height:32px;
+  margin:0 auto 3px;border-radius:9px;color:var(--muted);
+  transition:background .18s var(--ease), color .18s var(--ease), transform .18s var(--ease);
+}
+.bottomnav .bn-item .ic3 svg{width:18px;height:18px;}
+.bottomnav .bn-item.active .ic3{
+  background:var(--item-color-soft,var(--pink-pale));color:var(--item-color,var(--pink-deep));
+  transform:translateY(-1px);
+}
+
+/* ---------- waiver ---------- */
+.waiver-box{
+  border:1px solid var(--line);border-radius:var(--radius-sm);padding:16px;
+  font-size:12.5px;color:var(--ink-soft);max-height:220px;overflow:auto;
+  background:#fff;margin-bottom:12px;line-height:1.7;
+}
+.checkline{display:flex;align-items:flex-start;gap:9px;font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.5;}
+.checkline input{margin-top:2px;accent-color:var(--pink);width:15px;height:15px;flex-shrink:0;}
+
+/* ---------- waiver page overrides (additive, scoped via body-class so
+   other pages using .app-body / .waiver-box are unaffected) ---------- */
+.waiver-box.waiver-box-tall{height:60vh;max-height:none;}
+
+/* ---------- unified content width: Account, Booking, Waiver, My Bookings
+   (same full-width sizing, just with consistent 1.5in side spacing
+   instead of the old 960px/1180px centered gutters) ---------- */
+@media(min-width:960px){
+  .app-body.page-uniform{max-width:none;padding-left:32px;padding-right:32px;margin-left:0;margin-right:0;}
+}
+
+/* ---------- date picker ---------- */
+.date-strip{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+.date-chip{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  padding:10px 0;text-align:center;border-radius:var(--radius-sm);
+  border:1.5px solid var(--line);font-size:12px;width:12.6%;cursor:pointer;
+  box-sizing:border-box;color:var(--ink-soft);
+  transition:border-color .15s var(--ease), background .15s var(--ease), color .15s var(--ease), transform .15s var(--ease);
+}
+.date-chip .dc-day{font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;opacity:.75;}
+.date-chip .dc-num{font-family:var(--font-display);font-weight:800;font-size:16px;line-height:1;}
+.date-chip:hover{border-color:var(--pink);transform:translateY(-1px);}
+.date-chip.sel{background:var(--pink-deep);color:#fff;border-color:transparent;}
+
+/* ---------- two-column booking layout: big calendar (left) + ---------- */
+/* ---------- experience & packages (right), 50/50 on wide screens ---------- */
+.booking-split{display:flex;flex-direction:column;gap:24px;align-items:flex-start;}
+.booking-col{width:100%;min-width:0;}
+.booking-col-cal{display:flex;flex-direction:column;}
+
+@media(min-width:960px){
+  .booking-split{flex-direction:row;}
+  .booking-col-cal,.booking-col-pkg{flex:1 1 50%;max-width:50%;}
+  .booking-col-cal{order:2;}
+  .booking-col-pkg{order:1;}
+}
+
+/* ---------- date & time picker — compact, always-visible inline calendar ---------- */
+.cal-embed{
+  border:1.5px solid var(--line);border-radius:var(--radius-lg);background:#fff;
+  overflow:hidden;box-shadow:var(--shadow-card);
+}
+.cal-embed-inner{display:flex;flex-direction:column;}
+.cal-month{padding:16px 16px 12px;}
+.cal-month-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.cal-month-head span{font-family:var(--font-display);font-weight:700;font-size:17px;color:var(--ink);}
+.cal-month-head button{
+  width:30px;height:30px;border-radius:9px;border:1.5px solid var(--line);background:#fff;
+  color:var(--ink-soft);cursor:pointer;font-size:15px;line-height:1;
+  transition:border-color .15s var(--ease), color .15s var(--ease);
+}
+.cal-month-head button:hover{border-color:var(--pink);color:var(--pink-dark);}
+.cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:8px;}
+.cal-weekdays span{text-align:center;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);}
+.cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+.cal-day{
+  aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+  border-radius:11px;font-size:13.5px;font-weight:600;color:var(--ink);cursor:pointer;
+  border:1.5px solid transparent;background:none;padding:0;
+  max-width:40px;min-height:28px;margin:0 auto;
+  transition:background .15s var(--ease), color .15s var(--ease);
+}
+.cal-day:hover:not(.disabled):not(.empty){background:var(--pink-pale);}
+.cal-day.today{border-color:var(--pink-light);color:var(--pink-deep);}
+.cal-day.selected{background:var(--pink-deep);color:#fff;}
+.cal-day.disabled{color:var(--line);cursor:not-allowed;}
+.cal-day.empty{visibility:hidden;cursor:default;}
+
+.cal-times{border-top:1px solid var(--line);padding:16px 16px 16px;}
+.cal-times-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.cal-times-head span{font-family:var(--font-display);font-weight:700;font-size:15px;color:var(--ink);}
+.cal-fmt-toggle{display:flex;background:var(--bg);border-radius:999px;padding:2px;gap:2px;}
+.cal-fmt-toggle button{
+  border:none;background:none;padding:4px 12px;border-radius:999px;font-size:11px;font-weight:700;
+  color:var(--muted);cursor:pointer;
+}
+.cal-fmt-toggle button.active{background:var(--ink);color:#fff;}
+.cal-slots{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;align-content:start;
+}
+.cal-slot{
+  padding:9px 4px;text-align:center;border-radius:var(--radius-sm);border:1.5px solid var(--line);
+  font-size:11.5px;font-weight:600;color:var(--ink-soft);cursor:pointer;background:#fff;
+  transition:border-color .15s var(--ease), background .15s var(--ease), color .15s var(--ease);
+}
+.cal-slot:hover{border-color:var(--pink-deep);color:var(--pink-deep);}
+.cal-slot.selected{background:var(--pink-deep);color:#fff;border-color:transparent;}
+.cal-slots-empty{font-size:12px;color:var(--muted);text-align:center;padding:14px 0;grid-column:1/-1;}
+
+@media(max-width:420px){
+  .cal-slots{grid-template-columns:repeat(2,1fr);}
+}
+
+.booking-submit-btn{width:100%;margin:16px 0 0;}
+
+/* ---------- service switcher (Dino Adventure vs RollerFever) ---------- */
+.service-switch{
+  display:inline-flex;flex-wrap:wrap;padding:4px;background:var(--bg);border-radius:999px;
+  gap:4px;margin-bottom:16px;
+}
+.service-tab{
+  display:flex;align-items:center;gap:9px;padding:9px 18px 9px 10px;border:none;
+  border-radius:999px;background:none;cursor:pointer;text-align:left;
+  transition:background .15s var(--ease), color .15s var(--ease);
+}
+.service-tab img{width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;}
+.service-tab span{display:flex;flex-direction:column;line-height:1.15;}
+.service-tab b{font-size:12.5px;color:var(--ink-soft);font-weight:600;}
+.service-tab small{font-size:9.5px;color:var(--muted);}
+.service-tab.active{background:#fff;box-shadow:var(--shadow-card);}
+.service-tab.active b{color:var(--pink-deep);font-weight:700;}
+
+/* ---------- package cards (Dino Adventure / RollerFever) ---------- */
+.promo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-bottom:16px;}
+.promo-grid[hidden]{display:none;}
+.promo-card{border:1px solid var(--line);border-radius:var(--radius-lg);overflow:visible;background:#fff;display:flex;flex-direction:column;position:relative;transition:border-color .15s var(--ease), box-shadow .15s var(--ease);}
+.promo-card.selected{border-color:var(--pink-deep);box-shadow:var(--shadow-card);}
+.promo-media{position:relative;aspect-ratio:16/9;overflow:hidden;background:var(--bg);}
+.promo-media img{width:100%;height:100%;object-fit:cover;display:block;}
+.promo-badge{position:absolute;left:0;top:0;background:var(--ink);color:#fff;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:6px 12px;border-radius:0 0 8px 0;}
+.promo-body{padding:22px 16px 16px;display:flex;flex-direction:column;gap:8px;}
+.promo-body h4{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--ink);margin:0;}
+.promo-name-sub{display:block;font-family:var(--font-display);font-size:inherit;font-weight:700;color:var(--ink);}
+.promo-body > p{font-size:12px;color:var(--muted);margin:0;line-height:1.5;}
+.promo-price-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:4px;}
+.promo-price-label{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+.promo-price{display:block;font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--pink-deep);}
+.promo-select-btn{margin:0;padding:10px 18px;font-size:12px;white-space:nowrap;}
+.promo-details-link{background:none;border:none;padding:2px 0;text-align:left;font-size:11.5px;font-weight:700;color:var(--pink-deep);cursor:pointer;}
+.promo-details-link:hover{text-decoration:underline;}
+
+.promo-tiers{position:absolute;top:64px;left:0;right:0;bottom:0;margin:0;background:#fff;border:1px solid var(--line);border-top:none;border-radius:0 0 inherit inherit;box-shadow:0 16px 32px -12px rgba(0,0,0,.22);z-index:30;padding:16px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;}
+.promo-tiers-title{font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--ink);margin:0 0 4px;}
+.promo-tiers[hidden]{display:none;}
+.promo-tier{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 11px;border:1px solid var(--line);border-radius:var(--radius-sm);cursor:pointer;font-size:12px;font-weight:600;color:var(--ink);transition:border-color .15s var(--ease), background .15s var(--ease);}
+.promo-tier:hover{border-color:var(--pink-deep);}
+.promo-tier input{accent-color:var(--pink-deep);}
+.promo-tier b{color:var(--pink-deep);}
+.promo-tier.selected{border-color:var(--pink-deep);background:var(--pink-pale);}
+
+.promo-inclusions{margin-top:6px;}
+.promo-inclusions-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:0 0 6px;}
+.promo-inclusions ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px;}
+.promo-inclusions li{font-size:11.5px;color:var(--ink-soft);padding-left:18px;position:relative;line-height:1.4;}
+.promo-inclusions li::before{content:'✓';position:absolute;left:0;color:var(--teal);font-weight:700;}
+.promo-seemore-btn{
+  background:none;border:none;padding:6px 0 0;margin-top:2px;text-align:left;
+  font-size:11px;font-weight:700;color:var(--pink-dark);cursor:pointer;
+}
+.promo-seemore-btn:hover{text-decoration:underline;}
+.promo-seemore-btn.expanded{color:var(--ink-soft);}
+
+/* raise the package cards up a bit so more of each card is in view */
+.booking-col-pkg .u-card{padding:12px 14px 12px 16px;margin-bottom:8px;}
+.booking-col-pkg .service-switch{margin-bottom:10px;}
+.booking-col-pkg .promo-selection-summary{margin-bottom:10px;}
+.promo-body{padding:16px 16px 14px;}
+.promo-grid{margin-bottom:12px;}
+
+.service-packages{display:flex;flex-direction:column;}
+.service-packages[hidden]{display:none;}
+
+/* ---------- package pagination, styled to match the site theme ---------- */
+.promo-pagination{display:flex;align-items:center;justify-content:center;gap:6px;margin:4px 0 0;}
+.promo-pagination[hidden]{display:none;}
+.pg-btn{
+  min-width:34px;height:34px;padding:0 10px;border-radius:999px;border:1.5px solid var(--line);
+  background:#fff;color:var(--ink-soft);font-size:12.5px;font-weight:700;cursor:pointer;
+  transition:border-color .15s var(--ease), background .15s var(--ease), color .15s var(--ease), box-shadow .15s var(--ease);
+}
+.pg-btn:hover:not(:disabled){border-color:var(--pink);color:var(--pink-dark);}
+.pg-btn:disabled{opacity:.4;cursor:not-allowed;}
+.pg-btn.pg-num.active{
+  background:var(--pink-deep);color:#fff;border-color:transparent;
+}
+.pg-btn.pg-prev,.pg-btn.pg-next{font-size:16px;color:var(--pink-deep);}
+
+.promo-selection-summary{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  padding:13px 16px;border:1px solid var(--line);background:var(--pink-pale);
+  border-radius:var(--radius-sm);margin-bottom:16px;font-size:12.5px;font-weight:600;color:var(--ink);
+}
+.promo-selection-summary b{color:var(--pink-deep);}
+.promo-selection-summary.empty{color:var(--muted);font-weight:500;border-style:dashed;background:#fff;}
+
+/* ---------- package / booking rows ---------- */
+.pkg{
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+  border:1px solid var(--line);border-radius:var(--radius-md);
+  padding:14px 16px;margin-bottom:10px;background:#fff;
+  position:relative;box-shadow:var(--shadow-card);
+  transition:border-color .15s var(--ease), box-shadow .15s var(--ease);
+}
+.pkg:hover{box-shadow:0 10px 24px -14px rgba(26,21,35,.24);}
+.pkg:has(input:checked){border-color:var(--pink-deep);background:var(--pink-pale);}
+.pkg b{font-size:13.5px;display:block;color:var(--ink);font-weight:700;}
+.pkg span{font-size:11.5px;color:var(--muted);}
+.pkg .price{color:var(--pink-deep);font-weight:800;font-size:13.5px;white-space:nowrap;}
+.pkg .price input[type="radio"]{accent-color:var(--pink-deep);width:16px;height:16px;}
+
+/* ---------- status tags ---------- */
+.tag{padding:4px 10px;border-radius:4px;font-size:10px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;white-space:nowrap;}
+.tag.green{background:var(--teal-pale);color:var(--teal-deep);}
+.tag.amber{background:var(--amber-pale);color:var(--amber-deep);display:inline-flex;align-items:center;gap:5px;}
+.tag.amber::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--amber-deep);animation:u-pulse 1.6s ease-in-out infinite;}
+.tag.rose,.tag.pink{background:var(--rose-pale);color:var(--rose-deep);}
+@keyframes u-pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+@media (prefers-reduced-motion: reduce){.tag.amber::before{animation:none;}}
+
+/* ---------- empty state ---------- */
+.u-empty{
+  border:1px dashed var(--line);border-radius:var(--radius-md);
+  padding:34px 20px;text-align:center;color:var(--ink-soft);background:#fff;
+}
+.u-empty-icon{
+  width:54px;height:54px;border-radius:50%;background:var(--pink-pale);color:var(--pink-deep);
+  display:flex;align-items:center;justify-content:center;margin:0 auto 14px;
+}
+.u-empty-icon svg{width:26px;height:26px;}
+.u-empty h4{margin:0 0 4px;color:var(--ink);font-size:15px;font-weight:700;}
+.u-empty p{margin:0;font-size:12.5px;}
+
+/* ---------- floating AI chat ---------- */
+.chat-fab{
+  position:fixed;width:56px;height:56px;border-radius:50%;
+  background:var(--pink-deep);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+  box-shadow:var(--shadow-pop);cursor:pointer;border:none;
+  bottom:104px;right:18px;z-index:25;transition:transform .15s var(--ease);
+}
+.chat-fab:hover{transform:scale(1.06);}
+.chat-window{
+  position:fixed;bottom:0;right:0;width:100%;height:100%;background:#fff;
+  display:none;flex-direction:column;z-index:30;
+}
+.chat-window.open{display:flex;}
+.chat-head{background:var(--ink);color:#fff;padding:16px;display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700;}
+.chat-head small{display:block;font-weight:400;font-size:10px;color:rgba(255,255,255,.6);margin-top:2px;}
+.chat-body{flex:1;padding:14px;overflow-y:auto;background:var(--bg);}
+.chat-row{display:flex;align-items:flex-end;gap:7px;margin-bottom:10px;}
+.chat-row.user{justify-content:flex-end;}
+.chat-avatar{
+  width:26px;height:26px;border-radius:50%;flex-shrink:0;
+  background:var(--ink);display:flex;align-items:center;justify-content:center;
+}
+.chat-avatar svg{width:15px;height:15px;display:block;}
+.chat-avatar img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;}
+.bubble{max-width:78%;padding:10px 13px;border-radius:14px;font-size:12px;line-height:1.5;}
+.bubble.bot{background:#fff;border:1px solid var(--line);border-bottom-left-radius:4px;box-shadow:var(--shadow-card);}
+.bubble.user{background:var(--pink-deep);color:#fff;border-bottom-right-radius:4px;}
+.quick{display:inline-block;padding:7px 11px;border:1px solid var(--line);color:var(--pink-deep);border-radius:999px;font-size:10.5px;margin:0 6px 6px 0;cursor:pointer;font-weight:600;transition:background .15s var(--ease);}
+.quick:hover{background:var(--pink-pale);}
+.chat-input{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line);}
+.chat-input input{flex:1;border:1px solid var(--line);border-radius:20px;padding:10px 15px;font-size:12px;}
+.chat-input input:focus{border-color:var(--pink-deep);outline:none;}
+.chat-input button{background:var(--pink-deep);color:#fff;border:none;width:38px;height:38px;border-radius:50%;cursor:pointer;flex-shrink:0;}
+
+/* alert boxes used by the layout for session()/validation messages */
+.u-alert{border-radius:var(--radius-md);padding:14px 16px;margin-bottom:12px;font-size:12.5px;font-weight:600;}
+.u-alert.success{background:var(--teal-pale);color:var(--teal-deep);}
+.u-alert.error{background:var(--rose-pale);color:var(--rose-deep);}
+
+/* ===========================================================
+   Tablet
+   =========================================================== */
+@media(min-width:600px){
+  .app-body{padding:26px 30px;padding-bottom:120px;}
+  .phone-head{padding:22px 30px 26px;}
+  .date-chip{width:auto;flex:1;}
+}
+
+/* ===========================================================
+   Desktop — full-bleed sidebar layout (mirrors the admin shell:
+   edge-to-edge, no floating "card" frame — the sidebar spans the
+   full viewport height with its own fixed account/logout foot)
+   =========================================================== */
+@media(min-width:960px){
+  #userView{
+    padding:0;display:block;min-height:100vh;
+    background:var(--bg);
+  }
+  .app-frame{
+    flex-direction:row;max-width:none;width:100%;
+    min-height:100vh;border-radius:0;background:transparent;
+    overflow:visible;box-shadow:none;
+  }
+
+
+  .bottomnav{
+    position:sticky;top:0;left:auto;right:auto;bottom:auto;
+    flex-direction:column;width:var(--u-sidebar-w);height:100vh;align-self:stretch;
+    background:var(--ink);border:none;border-right:1px solid rgba(255,255,255,.06);
+    border-radius:0;box-shadow:none;padding:26px 14px 16px;gap:4px;justify-content:flex-start;
+    overflow-y:auto;
+  }
+  .nav-brand{display:flex;align-items:center;gap:10px;padding:0 12px 26px;}
+  .nav-brand-mark{width:34px;height:34px;flex-shrink:0;display:block;}
+  .nav-brand-text{display:flex;flex-direction:column;line-height:1.15;}
+  .nav-brand-name{font-family:var(--font-display);font-weight:800;font-size:19px;color:#fff;letter-spacing:.01em;}
+  .nav-brand-sub{font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.5);}
+
+  .nav-section-label{
+    display:block;padding:16px 14px 6px;font-size:10.5px;font-weight:700;
+    letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.32);
+  }
+  .nav-section-label:first-of-type{padding-top:0;}
+
+  .bottomnav .bn-item{
+    display:flex;align-items:center;gap:12px;text-align:left;
+    padding:10.5px 14px;border-radius:12px;font-size:13px;color:rgba(255,255,255,.62);
+  }
+  .bottomnav .bn-item .ic3{margin:0;width:32px;height:32px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);}
+  .bottomnav .bn-item:hover{color:#fff;}
+  .bottomnav .bn-item:hover .ic3{background:rgba(255,255,255,.1);}
+  .bottomnav .bn-item.active{
+    background:var(--pink-deep);
+    color:#fff;
+  }
+  .bottomnav .bn-item.active .ic3{background:rgba(255,255,255,.16);color:#fff;transform:none;}
+
+  /* pushes the account/logout foot to the bottom of the sidebar */
+  .nav-spacer{flex:1;}
+
+  .nav-foot{
+    display:flex;flex-direction:column;gap:10px;
+    padding-top:14px;margin-top:10px;
+    border-top:1px solid rgba(255,255,255,.08);
+  }
+  .nav-foot-user{display:flex;align-items:center;gap:10px;padding:2px 12px;}
+  .nav-foot-avatar{
+    width:38px;height:38px;border-radius:9px;flex-shrink:0;
+    background:var(--pink-deep);
+    color:#fff;display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-display);font-weight:700;font-size:15px;
+  }
+  .nav-foot-name{color:#fff;font-weight:700;font-size:12.5px;line-height:1.3;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px;}
+  .nav-foot-role{color:rgba(255,255,255,.42);font-size:10.5px;line-height:1.3;}
+
+  .nav-foot-logout{
+    display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;
+    color:rgba(255,255,255,.62);font-size:13px;font-weight:600;text-decoration:none;
+    background:none;border:none;width:100%;text-align:left;cursor:pointer;
+    transition:background .15s var(--ease), color .15s var(--ease);
+  }
+  .nav-foot-logout svg{width:16px;height:16px;flex-shrink:0;}
+  .nav-foot-logout:hover{background:rgba(239,67,96,.14);color:#ff8fa3;}
+
+  .only-desktop{display:flex !important;}
+  .only-mobile{display:none !important;}
+
+  .app-main{flex:1;display:flex;flex-direction:column;min-width:0;background:transparent;min-height:100vh;}
+  .phone-head{padding:30px 40px 28px;}
+  .phone-head h2{font-size:23px;}
+  .phone-head p{font-size:13px;}
+  .ticket-seam{display:none;}
+
+  /* content sits as a centered panel on the light gray canvas,
+     matching the admin dashboard's content area treatment */
+  .app-body{
+    padding:32px 40px 48px;max-width:960px;margin:0 auto;width:100%;
+    box-sizing:border-box;
+  }
+
+  .u-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;}
+
+  /* opt-in wider layout for pages with list-like content (bookings,
+     packages) so cards use the extra width instead of leaving it blank */
+  .app-body.wide{max-width:1180px;}
+  .u-card-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;align-items:start;}
+  .u-card-grid > form{margin:0;}
+  .booking-item{display:flex;flex-direction:column;}
+
+  .chat-fab{bottom:32px;right:32px;}
+  .chat-window{
+    top:auto;left:auto;bottom:32px;right:32px;width:372px;height:530px;
+    border-radius:var(--radius-lg);box-shadow:var(--shadow-pop);border:1px solid var(--line);
+  }
+  .chat-head{border-radius:var(--radius-lg) var(--radius-lg) 0 0;}
+}
+
+/* utility: revealed only inside the desktop block above */
+.only-desktop{display:none;}
+
+/* ===========================================================
+   REKS-FIX-v2 — Booking page compact fit (additive only)
+   Keeps the calendar grid a bit tighter and makes every time-slot
+   button the SAME height (some labels wrap to 2 lines, e.g.
+   "9:00 AM – 12:00 PM", others fit on 1 line, e.g. "1:30 PM –
+   4:30 PM" — min-height + flex centering keeps them all uniform
+   instead of some boxes looking taller than others). No inner
+   scrollbox — the slot list just flows naturally with the page,
+   so every slot is visible without needing to scroll.
+   =========================================================== */
+.cal-day{min-height:34px;}
+.cal-days{gap:5px;}
+.cal-month{padding:14px 14px 10px;}
+.cal-times{padding:14px 14px 14px;}
+.cal-slots{max-height:none;overflow:visible;}
+.cal-slot{
+  min-height:40px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  line-height:1.3;
+  font-size:11px;
+  white-space:nowrap;
+  padding-left:2px;
+  padding-right:2px;
+}
+
+/* ===========================================================
+   REKS-FIX-v3 — Enlarge the package cards (Dino Adventure /
+   RollerFever) so the right column reads closer in scale to the
+   big calendar on the left. Taller image area + slightly bigger
+   type/padding throughout the card. Additive only — none of the
+   base .promo-* rules above are modified.
+   =========================================================== */
+.promo-grid{gap:20px;}
+.promo-media{aspect-ratio:4/3;}
+.promo-body{padding:24px 22px 22px;gap:12px;}
+.promo-body h4{font-size:19px;}
+.promo-body > p{font-size:13.5px;line-height:1.55;}
+.promo-price-label{font-size:11px;}
+.promo-price{font-size:26px;}
+.promo-select-btn{padding:14px 24px;font-size:14px;}
+.promo-details-link{font-size:13px;}
+.promo-badge{font-size:12px;padding:7px 14px;}
+
+/* ===========================================================
+   REKS-FIX-v4 — Pistavora logo in the sidebar brand slot
+   (replaces the old REKS icon+text; additive only).
+   =========================================================== */
+/* REKS-FIX-v8: logo size — bigger and wider (landscape) so it fills more of the sidebar */
+.nav-brand-logo{
+  max-width:100%;
+  height:auto;
+  max-height:96px;
+  width:100%;
+  object-fit:contain;
+  display:block;
+}
+@media(min-width:960px){
+  .promo-grid{grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;}
+}
+/* ===========================================================
+   REKS-FIX-v9 — My Bookings rows: voucher + action buttons
+   alignment. Buttons sit vertically centered next to the
+   details on wider screens; on narrow screens the actions
+   column drops full-width below the details instead of being
+   squeezed into a tiny min-width box (additive only).
+   =========================================================== */
+@media(max-width:600px){
+  .mb-actions{width:100%;}
+}
+
+/* ===========================================================
+   REKS-FIX-v10 — My Bookings / Analytics tab switcher.
+   Reuses the site's pill-switch visual language (see
+   .service-switch above) but text-only, for the two-panel
+   toggle on the My Bookings page. Additive only.
+   =========================================================== */
+.mb-tabs{display:inline-flex;padding:4px;background:var(--bg);border-radius:999px;gap:4px;margin:16px 0 0;}
+.mb-tab{border:none;background:none;padding:9px 20px;border-radius:999px;font-size:12.5px;font-weight:700;color:var(--muted);cursor:pointer;transition:background .15s var(--ease), color .15s var(--ease);}
+.mb-tab.active{background:#fff;color:var(--pink-deep);box-shadow:var(--shadow-card);}
+.mb-panel[hidden]{display:none;}
+
+/* ===========================================================
+   REKS-FIX-v11 — Review Booking page redesign (rb- prefix).
+   Recreates the richer payment-review mockup using the site's
+   existing design tokens (--pink-deep, --teal, --amber, --font-
+   display, .pkg, .tag, .u-card) instead of introducing Tailwind.
+   Additive only.
+   =========================================================== */
+
+.rb-summary-top{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap;}
+.rb-summary-icon{width:44px;height:44px;border-radius:var(--radius-md);background:var(--pink-pale);color:var(--pink-deep);display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid var(--pink-light);}
+
+.rb-badge{padding:3px 9px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:.02em;white-space:nowrap;}
+.rb-badge-teal{background:var(--teal-pale);color:var(--teal-deep);}
+.rb-badge-neutral{background:var(--bg);color:var(--ink-soft);}
+.rb-badge-pink{background:var(--pink-light);color:var(--pink-deep);text-transform:uppercase;}
+
+.rb-price-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;padding-top:16px;border-top:1px solid var(--line);}
+.rb-price-box{background:var(--bg);border-radius:var(--radius-sm);padding:12px 14px;}
+.rb-price-box-highlight{background:var(--pink-pale);border:1px solid var(--pink-light);}
+.rb-price-label{font-size:11px;color:var(--muted);font-weight:600;}
+.rb-price-label-highlight{color:var(--pink-deep);text-transform:uppercase;letter-spacing:.03em;font-weight:800;}
+.rb-price-value{font-size:16px;font-weight:800;color:var(--ink);margin-top:2px;}
+.rb-price-value-highlight{color:var(--pink-deep);font-size:20px;}
+.rb-price-sub{font-size:10.5px;color:var(--pink-dark);opacity:.8;margin-top:2px;}
+
+.rb-step-chip{font-size:11px;font-weight:700;color:var(--muted);background:var(--bg);padding:5px 12px;border-radius:999px;white-space:nowrap;}
+
+.rb-method-icon{width:44px;height:44px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:-.02em;border:1px solid;}
+.rb-method-icon-rose{background:var(--rose-pale);color:var(--rose-deep);border-color:var(--pink-light);}
+.rb-method-icon-blue{background:#EAF1FF;color:#2E5BFF;border-color:#CBDBFF;}
+.rb-method-icon-teal{background:var(--teal-pale);color:var(--teal-deep);border-color:var(--teal-pale);}
+
+.rb-scan-layout{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start;}
+.rb-scan-info{flex:1;min-width:240px;}
+.rb-live-chip{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--ink-soft);background:var(--bg);padding:5px 12px;border-radius:999px;}
+.rb-live-dot{width:6px;height:6px;border-radius:50%;background:var(--pink-deep);}
+.rb-merchant-box{background:var(--bg);border-radius:var(--radius-sm);padding:12px 14px;margin-top:12px;display:flex;flex-direction:column;gap:8px;max-width:360px;}
+.rb-merchant-row{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:11.5px;}
+.rb-merchant-row span{color:var(--muted);}
+.rb-merchant-row b{color:var(--ink);}
+.rb-ref-code{font-family:monospace;font-weight:800;color:var(--pink-deep);background:var(--pink-pale);padding:2px 8px;border-radius:6px;border:1px solid var(--pink-light);font-size:11px;}
+.rb-timer-chip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:var(--amber-deep);background:var(--amber-pale);padding:6px 12px;border-radius:var(--radius-sm);}
+
+.rb-scan-qr-frame{flex-shrink:0;background:#fff;border:2px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow-pop);padding:16px;display:flex;flex-direction:column;align-items:center;margin:0 auto;}
+.rb-scan-qr-header{display:flex;justify-content:space-between;align-items:center;width:100%;padding-bottom:10px;margin-bottom:10px;border-bottom:1px solid var(--line);font-size:9.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;}
+.rb-scan-qr-header span:first-child{color:var(--muted);}
+.rb-scan-qr-verified{color:var(--rose-deep);background:var(--rose-pale);padding:2px 7px;border-radius:5px;}
+
+.rb-upload-zone{margin-top:16px;padding-top:16px;border-top:1px solid var(--line);}
+.rb-dropzone{border:2px dashed var(--line);border-radius:var(--radius-md);padding:20px;text-align:center;cursor:pointer;background:var(--bg);transition:border-color .15s var(--ease), background .15s var(--ease);}
+.rb-dropzone:hover, .rb-dropzone-active{border-color:var(--pink-deep);background:var(--pink-pale);}
+.rb-dropzone-icon{width:40px;height:40px;border-radius:var(--radius-sm);background:#fff;border:1px solid var(--line);color:var(--pink-deep);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;}
+.rb-file-status{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;padding:10px 12px;border-radius:var(--radius-sm);background:var(--bg);font-size:11.5px;color:var(--ink-soft);}
+
+.rb-confirm-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;margin-top:18px;padding:16px 18px;border-radius:var(--radius-lg);background:#fff;border:1px solid var(--line);box-shadow:var(--shadow-card);}
+.rb-confirm-icon{width:36px;height:36px;border-radius:var(--radius-sm);background:var(--teal-pale);color:var(--teal-deep);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+@media(max-width:640px){
+    .rb-scan-layout{flex-direction:column;}
+    .rb-scan-qr-frame{width:100%;}
+    .rb-price-grid{grid-template-columns:1fr;}
+}
+
+/* ===========================================================
+   REKS-FIX-v12 — Account & Profile page redesign (ap- prefix).
+   Reuses existing tokens/classes (u-card, u-swatches, u-input,
+   rb-badge) rather than introducing Tailwind. Additive only.
+   Scope: resources/views/user/dashboard.blade.php only.
+   =========================================================== */
+
+.ap-hero{
+    position:relative;
+    background:linear-gradient(120deg, var(--pink-deep), var(--gold, #FFC948));
+    border-radius:var(--radius-lg);
+    padding:22px 20px;
+    overflow:hidden;
+}
+.ap-hero-chip{
+    position:absolute;top:14px;right:16px;
+    display:inline-flex;align-items:center;gap:5px;
+    background:rgba(0,0,0,.28);color:#fff;
+    font-size:10.5px;font-weight:700;
+    padding:5px 11px;border-radius:999px;
+}
+.ap-hero-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+.ap-hero-avatar{
+    flex-shrink:0;width:68px;height:68px;border-radius:var(--radius-md);
+    background:rgba(255,255,255,.18);border:2px solid rgba(255,255,255,.4);
+    color:#fff;display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-display);font-weight:700;font-size:26px;
+}
+.ap-hero-badge{
+    font-size:10.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;
+    color:#fff;background:rgba(0,0,0,.22);padding:3px 9px;border-radius:4px;
+}
+.ap-hero-stats{display:flex;gap:10px;flex-wrap:wrap;}
+.ap-hero-stat{
+    background:rgba(255,255,255,.16);border-radius:var(--radius-sm);
+    padding:8px 16px;text-align:center;min-width:88px;
+}
+.ap-hero-stat-label{font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:rgba(255,255,255,.75);}
+.ap-hero-stat-value{font-size:14px;font-weight:800;color:#fff;margin-top:2px;}
+
+.ap-form-footer{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+    margin-top:18px;padding-top:14px;border-top:1px solid var(--line);
+}
+.ap-static-field{
+    display:flex;align-items:center;gap:10px;
+    background:var(--bg);border:1px solid var(--line);border-radius:var(--radius-sm);
+    padding:10px 12px;font-size:13px;color:var(--ink);
+}
+
+@media(max-width:640px){
+    .ap-hero-chip{position:static;display:inline-flex;margin-bottom:10px;}
+    .ap-hero-row{gap:12px;}
+}
+
+/* ===========================================================
+   REKS-FIX-v13 — Booking page visual polish (bk- prefix for new
+   elements). Purely additive: richer badges/shadows on existing
+   promo-card/service-tab/cal-* classes, plus two new elements
+   (info banner, bottom summary bar). No JS/markup logic touched
+   beyond what's needed to mount these two new elements — package
+   images and the calendar/filter/pagination scripts are untouched.
+   =========================================================== */
+
+.booking-info-banner{
+    display:flex;align-items:center;gap:12px;
+    background:#fff;border:1px solid var(--line);border-radius:var(--radius-lg);
+    padding:14px 16px;box-shadow:var(--shadow-card);
+}
+.booking-info-icon{
+    width:32px;height:32px;border-radius:var(--radius-sm);flex-shrink:0;
+    background:var(--amber-pale);color:var(--amber-deep);
+    display:flex;align-items:center;justify-content:center;
+}
+.booking-info-banner p{margin:0;font-size:12.5px;font-weight:500;color:var(--ink-soft);}
+
+.booking-sticky-bar{
+    display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+    background:#fff;border:1px solid var(--line);border-radius:var(--radius-lg);
+    padding:14px 18px;margin-top:20px;box-shadow:var(--shadow-card);
+}
+.booking-sticky-info{display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);font-weight:600;}
+.booking-sticky-divider{width:1px;height:16px;background:var(--line);display:inline-block;}
+.booking-sticky-total-label{color:var(--muted);font-weight:500;}
+.booking-sticky-total b{color:var(--ink);font-size:13.5px;margin-left:4px;}
+.booking-sticky-bar .booking-submit-btn{
+    width:auto;padding:12px 24px;font-size:13px;
+    background:linear-gradient(120deg, var(--pink-dark, #d63e63), var(--pink-deep));
+    box-shadow:0 10px 22px -10px rgba(99,102,241,.55);
+}
+
+/* ---- richer polish on existing selection cards/buttons ---- */
+.service-tab{border-radius:var(--radius-lg) !important;}
+.promo-card{border-radius:20px !important;box-shadow:var(--shadow-card);}
+.promo-card:hover{box-shadow:0 14px 30px -18px rgba(26,21,35,.28);}
+.promo-badge{border-radius:0 0 10px 0 !important;}
+.promo-select-btn{border-radius:12px !important;box-shadow:0 8px 18px -10px rgba(99,102,241,.5);}
+.cal-day{border-radius:12px !important;}
+.cal-day.selected{box-shadow:0 8px 18px -10px rgba(99,102,241,.5);}
+.cal-slot{border-radius:12px !important;}
+.promo-pagination button{border-radius:12px !important;}
+
+@media(max-width:640px){
+    .booking-sticky-bar{flex-direction:column;align-items:stretch;}
+    .booking-sticky-bar .booking-submit-btn{width:100%;}
+}
+
+/* ===========================================================
+   REKS-FIX-v14 — Time-slot picker visual match: 2-column grid
+   (was 3) and an outline style for the selected slot (was solid
+   fill), matching the reference mockup. Purely cosmetic — the
+   actual slot values/durations generated by JS are untouched.
+   =========================================================== */
+.cal-slots{grid-template-columns:repeat(2,1fr) !important;}
+.cal-slot.selected{
+    background:var(--pink-pale) !important;
+    color:var(--pink-deep) !important;
+    border-color:var(--pink-deep) !important;
+}

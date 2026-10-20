@@ -1,0 +1,398 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+@import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css');
+
+/* =====================================================================
+   Pistavora — user-side theme (v2)
+   Direction: same theme as the admin — slate neutrals, indigo primary,
+   Plus Jakarta Sans + Inter, white cards on #F8FAFC, dark navy sidebar.
+   Load AFTER user-app-theme.css. Remove the <link> to revert.
+   Contrast checked against WCAG AA (text >= 4.5:1, UI >= 3:1).
+   ===================================================================== */
+
+:root{
+  /* neutrals — same slate scale as the admin */
+  --ink:#0F172A;
+  --ink-soft:#475569;          /* 7.6:1 on white */
+  --muted:#64748B;             /* 4.8:1 on white */
+  --line:#E2E8F0;
+  --line-strong:#CBD5E1;       /* same as admin */
+  --text-sub:#625C70;
+  --bg:#F8FAFC;
+  --surface:#FFFFFF;
+  --gray-tile:#F1F5F9;
+
+  /* primary: admin indigo — white text 6.3:1 */
+  --pink:#6366F1;
+  --pink-dark:#4338CA;
+  --pink-deep:#4F46E5;
+  --pink-light:#E0E7FF;
+  --pink-pale:#EEF2FF;
+
+  /* status / accents (admin values) */
+  --teal:#0D9488;
+  --teal-deep:#0F766E;
+  --teal-pale:#CCFBF1;
+  --gold:#F59E0B;
+  --gold-pale:#FEF3C7;
+  --amber-pale:#FEF3C7;
+  --rose-pale:#FFE4E6;
+  --amber-deep:#B45309;
+  --gold-deep:#B45309;
+  --rose-deep:#BE123C;
+  --danger:#B91C1C;
+  --danger-soft:#FEE2E2;
+  --violet:#6D28D9;
+  --violet-pale:#EDE9FE;
+
+  /* shape + elevation (admin values) */
+  --radius-lg:14px;
+  --radius-md:10px;
+  --radius-sm:8px;
+  --shadow-card:0 1px 2px rgba(15,23,42,.05), 0 4px 12px rgba(15,23,42,.04);
+  --shadow-pop:0 4px 6px rgba(15,23,42,.04), 0 16px 36px rgba(15,23,42,.12);
+
+  --font-display:'Plus Jakarta Sans','Inter',-apple-system,'Segoe UI',sans-serif;
+  --font-body:'Inter',-apple-system,'Segoe UI',sans-serif;
+  --wp-ease:cubic-bezier(.2,.7,.3,1);
+}
+
+body{font-family:var(--font-body);color:var(--ink);}
+h1,h2,h3,h4,.phone-head h2{font-family:var(--font-display);font-weight:700;color:var(--ink);letter-spacing:-.01em;}
+::selection{background:var(--pink-light);color:var(--pink-dark);}
+
+/* keyboard focus: visible everywhere */
+:where(a,button,input,select,textarea,[tabindex]):focus-visible{
+  outline:3px solid rgba(99,102,241,.45);outline-offset:2px;border-radius:var(--radius-sm);
+}
+
+/* ---------- cards ---------- */
+.u-card,.u-profile-card,.pkg{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-card);
+  transition:transform .2s var(--wp-ease), box-shadow .2s, border-color .2s;
+}
+.u-card:hover,.pkg:hover{transform:translateY(-2px);box-shadow:var(--shadow-pop);}
+.promo-card{
+  border-radius:var(--radius-lg) !important;border-color:var(--line);box-shadow:var(--shadow-card);
+  transition:transform .2s var(--wp-ease), box-shadow .2s, border-color .2s;
+}
+.promo-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-pop);}
+.promo-badge{border-radius:0 0 var(--radius-md) 0 !important;font-family:var(--font-display);}
+
+/* ---------- buttons ---------- */
+.u-btn,.promo-select-btn{
+  min-height:40px;padding:0 18px;border-radius:var(--radius-md) !important;
+  font-family:var(--font-body);font-weight:600;font-size:13px;
+  background:var(--pink-deep);color:#fff;border:none;
+  box-shadow:0 8px 20px rgba(79,70,229,.28);
+  transition:transform .2s var(--wp-ease), background .15s, box-shadow .2s;
+}
+.u-btn:hover,.promo-select-btn:hover{background:var(--pink-dark);transform:translateY(-1px);filter:none;}
+.u-btn:active{transform:translateY(0);}
+.u-btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line-strong);box-shadow:none;}
+.u-btn.ghost:hover{border-color:var(--ink);background:#fff;}
+
+/* ---------- inputs ---------- */
+.u-input{
+  min-height:40px;background:#fff;border:1px solid var(--line-strong);border-radius:var(--radius-md);color:var(--ink);font-size:13px;font-family:var(--font-body);
+}
+.u-input::placeholder{color:var(--muted);}
+.u-input:focus{border-color:var(--pink);box-shadow:0 0 0 3px var(--pink-light);outline:none;}
+
+/* ---------- header + bottom nav ---------- */
+.phone-head{background:#fff;border-bottom:1px solid var(--line);}
+.phone-head p{color:var(--muted);font-family:var(--font-body);}
+@media (max-width:959px){
+  .bottomnav{background:#fff;border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow-pop);}
+}
+.tag{border-radius:999px;font-family:var(--font-display);}
+
+/* =====================================================================
+   Pills, gray tiles, text links (landing "Choose your rides" look)
+   Light mode only — dark mode keeps its own surfaces.
+   ===================================================================== */
+/* service picker = landing "Pick any rides you like" tiles (emoji icon on top) */
+.service-switch{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0;background:none;border:none;border-radius:0;box-shadow:none;margin-bottom:16px;}
+.service-tab{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  padding:16px 6px;text-align:center;cursor:pointer;
+  border-radius:var(--radius-lg) !important;transition:background .2s, border-color .2s, transform .2s var(--wp-ease), box-shadow .2s;
+}
+.service-tab .svc-ico{display:block;font-size:32px;line-height:1;font-family:"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif;}
+.service-tab span{align-items:center;text-align:center;}
+.service-tab small{display:none;}
+:root:not([data-theme="dark"]) .service-tab{background:var(--gray-tile);border:2px solid transparent;box-shadow:none;}
+:root:not([data-theme="dark"]) .service-tab b{color:var(--ink-soft);font-family:var(--font-body);font-weight:600;font-size:13px;}
+:root:not([data-theme="dark"]) .service-tab:hover{border-color:rgba(15,23,42,.28);}
+:root:not([data-theme="dark"]) .service-tab.active{background:#fff;border-color:var(--ink);transform:translateY(-3px);box-shadow:var(--shadow-card);}
+:root:not([data-theme="dark"]) .service-tab.active b{color:var(--ink);}
+@media (max-width:420px){.service-tab{padding:12px 4px;}.service-tab .svc-ico{font-size:26px;}.service-tab b{font-size:11.5px;}}
+
+:root:not([data-theme="dark"]) .cat-filter button,
+:root:not([data-theme="dark"]) .mb-tab{
+  background:#fff;border:1px solid var(--line-strong);border-radius:999px;color:var(--ink);
+  font-family:var(--font-display);font-weight:700;
+  transition:background .2s, color .2s, border-color .2s;
+}
+:root:not([data-theme="dark"]) .cat-filter button:hover,
+:root:not([data-theme="dark"]) .mb-tab:hover{border-color:var(--ink);}
+:root:not([data-theme="dark"]) .cat-filter button.active,
+:root:not([data-theme="dark"]) .mb-tab.active{background:var(--ink);border-color:var(--ink);color:#fff;box-shadow:none;}
+:root:not([data-theme="dark"]) .mb-tabs{background:transparent;padding:0;gap:8px;}
+
+:root:not([data-theme="dark"]) .promo-selection-summary,
+:root:not([data-theme="dark"]) .promo-selection-summary.empty,
+:root:not([data-theme="dark"]) .booking-info-banner{
+  background:var(--gray-tile);border:none;border-radius:var(--radius-lg);color:var(--ink);box-shadow:none;
+}
+:root:not([data-theme="dark"]) .booking-info-banner p{color:var(--ink);}
+
+:root:not([data-theme="dark"]) .promo-details-link,
+:root:not([data-theme="dark"]) .promo-seemore-btn{
+  color:var(--ink);font-family:var(--font-display);font-weight:700;
+  text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:2px;
+}
+:root:not([data-theme="dark"]) .promo-details-link:hover,
+:root:not([data-theme="dark"]) .promo-seemore-btn:hover{color:var(--pink-dark);}
+
+
+/* ---------- landing wizard vocabulary: labels, pagination, dropzones ---------- */
+.u-field-label{font-size:13px;font-weight:700;color:#6B5F52;}
+:root:not([data-theme="dark"]) .pg-btn{
+  background:#fff;border:1px solid var(--line-strong);border-radius:999px;color:var(--ink);
+  font-family:var(--font-display);font-weight:700;
+}
+:root:not([data-theme="dark"]) .pg-btn:hover{border-color:var(--ink);}
+:root:not([data-theme="dark"]) .pg-btn.active,
+:root:not([data-theme="dark"]) .pg-num.active{background:var(--ink);border-color:var(--ink);color:#fff;}
+:root:not([data-theme="dark"]) .rb-dropzone,
+:root:not([data-theme="dark"]) .rb-upload-zone{border:2px dashed rgba(27,21,16,.28);border-radius:16px;background:#fff;}
+:root:not([data-theme="dark"]) .rb-dropzone:hover,
+:root:not([data-theme="dark"]) .rb-upload-zone:hover{background:rgba(27,21,16,.03);}
+
+
+/* =====================================================================
+   Consistency pass: badges, chips, account hero, waiver
+   ===================================================================== */
+.rb-badge{font-size:11px;padding:4px 10px;font-family:var(--font-body);}
+.rb-badge-pink{color:var(--pink-dark);}
+.rb-badge-neutral{background:var(--gray-tile);color:var(--ink-soft);}
+.rb-timer-chip,.rb-live-chip{font-family:var(--font-body);}
+.rb-live-chip{background:var(--gray-tile);}
+
+/* account hero: dark ink card (white text passes AA; was white on gold) */
+.ap-hero{background:linear-gradient(135deg,#0F172A 0%,#312E81 100%);box-shadow:var(--shadow-card);}
+.ap-hero::after{content:"";position:absolute;right:-40px;bottom:-60px;width:180px;height:180px;border-radius:50%;
+  background:radial-gradient(circle,rgba(79,70,229,.55),transparent 70%);pointer-events:none;}
+.ap-hero-avatar{background:var(--pink-deep);border-color:rgba(255,255,255,.6);}
+.ap-hero-stat{background:rgba(255,255,255,.1);}
+.ap-hero-stat-label{color:rgba(255,255,255,.86);font-size:10.5px;}
+.ap-hero-chip,.ap-hero-badge{background:rgba(255,255,255,.14);}
+.ap-static-field{background:var(--gray-tile);border:none;border-radius:var(--radius-md);}
+
+/* waiver page ships its own inline styles; match them to the theme */
+html body .waiver-fullscreen{background:var(--bg);}
+html body .waiver-fullscreen .waiver-box-tall{background:#fff;border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);}
+html body .waiver-fullscreen .waiver-box-tall h5{font-family:var(--font-display);font-size:1rem;color:var(--ink);}
+
+
+/* =====================================================================
+   SHELL — admin-style sidebar, centered content, POS booking
+   ===================================================================== */
+
+/* sidebar accent = admin indigo; change --sb-* below to retheme */
+:root{
+  --sb-bg:#0B1020;
+  --sb-a1:#818CF8; --sb-a2:#4F46E5; --sb-tint:rgba(99,102,241,.30); --sb-tint2:rgba(99,102,241,.10);
+  --sb-ring:rgba(129,140,248,.35); --sb-edge:#A5B4FC; --sb-soft:#C7D2FE; --sb-glow:rgba(79,70,229,.5);
+  --u-content-w:1320px;                       /* admin .content-body max-width */
+  --u-pad:clamp(20px,3vw,40px);               /* admin .content-body padding */
+}
+
+@media (min-width:960px){
+  :root{--u-sidebar-w:280px;}
+  html.sb-collapsed{--u-sidebar-w:76px;}
+
+  /* ---- sidebar (same structure/sizes/colours as the admin) ---- */
+  .bottomnav{
+    background:radial-gradient(120% 60% at 0% 0%, rgba(99,102,241,.16), transparent 55%), var(--sb-bg);
+    border:none;border-right:1px solid rgba(255,255,255,.08);border-radius:0;box-shadow:none;
+    padding:0;gap:0;overflow:hidden;width:var(--u-sidebar-w);
+    transition:width .2s cubic-bezier(.4,0,.2,1);
+  }
+  .nav-brand{display:flex;align-items:center;gap:11px;padding:18px 16px 16px;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;}
+  .nav-toggle{
+    width:34px;height:34px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+    border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:#CBD5E1;cursor:pointer;
+    transition:background .15s,color .15s;
+  }
+  .nav-toggle:hover{background:rgba(255,255,255,.12);color:#fff;}
+  .nav-toggle svg{width:16px;height:16px;}
+  .brand-mark{width:40px;height:40px;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;padding:5px;flex-shrink:0;box-shadow:0 6px 16px rgba(0,0,0,.35);}
+  .brand-mark img{width:100%;height:100%;object-fit:contain;display:block;}
+  .brand-text{display:flex;flex-direction:column;line-height:1.2;overflow:hidden;flex:1;min-width:0;}
+  .brand-name{color:#fff;font-family:var(--font-display);font-weight:800;font-size:1.02rem;letter-spacing:-.01em;white-space:nowrap;}
+  .brand-sub{color:#7C89A3;font-weight:500;font-size:.72rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;}
+
+  .nav-list{display:flex;flex-direction:column;gap:3px;padding:12px;flex:1;overflow-y:auto;overflow-x:hidden;min-height:0;}
+  .nav-section-label{padding:10px 10px 6px;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#7C89A3;}
+
+  .bottomnav .bn-item{
+    position:relative;display:flex;align-items:center;gap:11px;padding:7px 10px;border-radius:11px;
+    color:#CBD5E1;font-weight:500;font-size:.86rem;text-align:left;transition:background .14s,color .14s;
+  }
+  .bottomnav .bn-item .ic3{width:30px;height:30px;margin:0;border-radius:9px;background:rgba(255,255,255,.05);color:#7C89A3;flex-shrink:0;transition:color .14s,background .14s;}
+  .bottomnav .bn-item .ic3 svg{width:16px;height:16px;}
+  .bottomnav .bn-item:hover{background:rgba(255,255,255,.07);color:#fff;}
+  .bottomnav .bn-item:hover .ic3{color:var(--sb-soft);background:var(--sb-tint2);}
+  .bottomnav .bn-item.active{
+    background:linear-gradient(90deg,var(--sb-tint),var(--sb-tint2));color:#fff;font-weight:600;
+    box-shadow:inset 0 0 0 1px var(--sb-ring);
+  }
+  .bottomnav .bn-item.active .ic3{color:#fff;background:linear-gradient(135deg,var(--sb-a1),var(--sb-a2));box-shadow:0 6px 14px var(--sb-glow);transform:none;}
+  .bottomnav .bn-item.active::before{content:'';position:absolute;left:-12px;top:9px;bottom:9px;width:3px;border-radius:0 4px 4px 0;background:var(--sb-edge);}
+
+  .nav-spacer{display:none !important;}
+  .nav-foot{padding:12px;margin:0;gap:0;border-top:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.18);flex-shrink:0;}
+  .nav-foot-user{display:flex;align-items:center;gap:10px;padding:9px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);}
+  .nav-foot-avatar{width:36px;height:36px;border-radius:10px;overflow:hidden;background:linear-gradient(135deg,var(--u-avatar-a,#FF5C85),var(--u-avatar-b,#B82850));font-size:.85rem;}
+  .nav-foot-avatar img{width:100%;height:100%;object-fit:cover;display:block;}
+  .nav-foot-info{display:flex;flex-direction:column;min-width:0;flex:1;}
+  .nav-foot-name{display:block;color:#fff;font-weight:600;font-size:.83rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:none;}
+  .nav-foot-role{display:inline-flex;width:fit-content;margin-top:3px;padding:1px 8px;border-radius:999px;background:var(--sb-tint);color:var(--sb-soft);font-size:.64rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em;}
+  .nav-logout-form{margin:0;flex-shrink:0;}
+  .nav-foot-logout{width:32px;height:32px;padding:0;justify-content:center;border-radius:9px;color:#7C89A3;background:none;gap:0;}
+  .nav-foot-logout:hover{background:rgba(244,63,94,.18);color:#FDA4AF;}
+
+  /* collapsed rail */
+  html.sb-collapsed .brand-text,
+  html.sb-collapsed .nav-section-label,
+  html.sb-collapsed .bn-label,
+  html.sb-collapsed .nav-foot-info,
+  html.sb-collapsed .nav-logout-form{display:none !important;}
+  html.sb-collapsed .nav-brand{flex-direction:column;gap:10px;padding:14px 0;}
+  html.sb-collapsed .bottomnav .bn-item{justify-content:center;padding:7px 0;}
+  html.sb-collapsed .nav-foot-user{justify-content:center;padding:6px;}
+
+  /* ---- content: one centred column on every page, header aligned to it ---- */
+  .app-body,.app-body.wide,.app-body.page-uniform{
+    max-width:var(--u-content-w);margin-left:auto;margin-right:auto;padding-left:var(--u-pad);padding-right:var(--u-pad);
+  }
+  .phone-head{
+    width:calc(100% - 2 * var(--u-pad));max-width:calc(var(--u-content-w) - 2 * var(--u-pad));
+    margin:var(--u-pad) auto 0;box-sizing:border-box;
+    padding:20px 24px;background:#fff;border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);
+  }
+  .phone-head p{
+    margin:0 0 4px;color:var(--pink-deep);font-family:var(--font-body);
+    font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  }
+  .phone-head h2{margin:0;font-family:'Source Serif 4',serif;font-size:1.45rem;font-weight:700;line-height:1.2;letter-spacing:0;}
+  .app-body,.app-body.wide,.app-body.page-uniform{padding-top:16px;padding-bottom:var(--u-pad);}
+}
+
+/* ---- fixes found on the real page ---- */
+@media (min-width:960px){
+  /* the mobile bottom-bar gave nav items flex:1, which stretched them down the sidebar */
+  .bottomnav .bn-item{flex:0 0 auto;}
+  .nav-list{justify-content:flex-start;}
+
+  /* packages: two cards side by side so two photos fit on screen (was one huge card) */
+  .promo-grid{grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px;}
+  .promo-media{aspect-ratio:4/3;}
+  .promo-body{padding:18px 16px 16px;gap:8px;}
+  .promo-body h4{font-size:16px;}
+  .promo-body > p{font-size:12.5px;line-height:1.5;}
+  .promo-price-row{flex-wrap:wrap;gap:10px;}
+  .promo-price-label{font-size:10px;}
+  .promo-price{font-size:22px;}
+  .promo-select-btn{padding:0 14px;font-size:12.5px;}
+}
+
+/* =====================================================================
+   NEW components (use in any user page)
+   ===================================================================== */
+
+/* -- icon chip: <span class="wp-ico c-teal"><i class="bi bi-calendar-check"></i></span> -- */
+.wp-ico{--c:var(--pink-deep);--cbg:var(--pink-light);
+  display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;
+  border-radius:var(--radius-md);background:var(--cbg);color:var(--c);font-size:20px;flex-shrink:0;}
+.wp-ico.c-teal{--c:var(--teal-deep);--cbg:var(--teal-pale);}
+.wp-ico.c-amber{--c:var(--amber-deep);--cbg:var(--gold-pale);}
+.wp-ico.c-violet{--c:var(--violet);--cbg:var(--violet-pale);}
+.wp-ico.c-danger{--c:var(--danger);--cbg:var(--danger-soft);}
+
+/* -- status badge: <span class="wp-badge success">Confirmed</span> -- */
+.wp-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;
+  font-size:12px;font-weight:600;line-height:1.4;background:var(--gray-tile);color:var(--ink-soft);}
+.wp-badge.success{background:var(--teal-pale);color:var(--teal-deep);}
+.wp-badge.warn{background:var(--gold-pale);color:var(--amber-deep);}
+.wp-badge.danger{background:var(--danger-soft);color:var(--danger);}
+.wp-badge.info{background:var(--violet-pale);color:var(--violet);}
+
+/* -- stat card: <div class="wp-stat"><span class="wp-ico c-teal">…</span><div><b>12</b><small>Bookings</small></div></div> -- */
+.wp-stat{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--line);
+  border-radius:var(--radius-lg);padding:16px 18px;box-shadow:var(--shadow-card);}
+.wp-stat b{display:block;font-family:var(--font-display);font-size:24px;line-height:1.1;color:var(--ink);}
+.wp-stat small{color:var(--muted);font-size:12.5px;}
+
+/* -- numbered steps (landing "How it works") -- */
+.wp-steps{display:flex;flex-direction:column;gap:10px;}
+.wp-step{--c:var(--pink-deep);display:flex;align-items:center;gap:14px;
+  background:#F6F1E8;border:2px solid transparent;border-radius:var(--radius-lg);padding:14px 16px;
+  transition:transform .2s var(--wp-ease), box-shadow .2s;}
+.wp-step:hover{transform:translateY(-2px);box-shadow:var(--shadow-card);}
+.wp-step h4{margin:0 0 2px;font-size:16px;color:var(--ink);}
+.wp-step p{margin:0;font-size:13px;color:var(--ink-soft);}
+.wp-step-num{flex-shrink:0;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-weight:800;font-size:17px;background:#fff;color:var(--c);border:2px solid var(--c);}
+.wp-step.done .wp-step-num,.wp-step.active .wp-step-num{background:var(--c);color:#fff;}
+.wp-step.active{background:#fff;border-color:var(--c);}
+.wp-step.c-coral{--c:#BE123C;}
+.wp-step.c-indigo{--c:#4F46E5;}
+.wp-step.c-amber{--c:#B45309;}
+.wp-step.c-teal{--c:#0F766E;}
+.wp-step.c-violet{--c:#6D28D9;}
+
+/* =====================================================================
+   Responsive
+   ===================================================================== */
+@media (min-width:960px){
+  .wp-steps.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+}
+@media (max-width:959px){
+  .u-btn,.promo-select-btn,.u-input{min-height:44px;}
+}
+@media (max-width:640px){
+  h1,.phone-head h2{font-size:1.35rem;}
+  .u-btn,.promo-select-btn{width:100%;}
+  .wp-stat{padding:14px;}
+  .wp-stat b{font-size:20px;}
+  .cat-filter{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  .cat-filter button{flex-shrink:0;}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition:none !important;animation:none !important;}
+  .u-card:hover,.pkg:hover,.promo-card:hover,.u-btn:hover,.wp-step:hover{transform:none;}
+}
+
+/* sidebar footer avatar = admin indigo (ignores the colour picked on the Account page) */
+@media (min-width:960px){
+  .nav-foot-avatar{background:linear-gradient(135deg,var(--sb-a1),var(--sb-a2)) !important;}
+}
+
+/* center-fix: centred button text (incl. block-styled links) + balanced My Bookings tabs */
+.u-btn{display:inline-flex;align-items:center;justify-content:center;line-height:1.2;text-align:center;}
+.u-btn[style*="display:block"],.u-btn[style*="display: block"]{display:flex !important;align-items:center;justify-content:center;}
+.mb-tabs{margin:4px 0 20px;}
+
+
+/* mobile-nav-fix */
+@media (max-width:959px){
+  .bottomnav{flex-direction:row;align-items:stretch;justify-content:center;}
+  .bottomnav .nav-list{display:flex;flex-direction:row;align-items:stretch;flex:1;min-width:0;width:100%;padding:0;gap:0;overflow:visible;}
+  .bottomnav .nav-list .bn-item{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 2px 7px;text-align:center;}
+  .bottomnav .bn-item .ic3{margin:0 auto 3px;}
+  .bottomnav .bn-label{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .bottomnav .nav-brand,.bottomnav .nav-section-label,.bottomnav .nav-foot{display:none !important;}
+}
