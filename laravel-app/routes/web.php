@@ -28,6 +28,19 @@ use App\Http\Controllers\Admin\MyAccountController;
 use App\Http\Controllers\Admin\SystemLogController;
 use App\Http\Controllers\PromoAiController;
 
+/*
+|--------------------------------------------------------------------------
+| SECURE (OBSCURED) PREFIX
+|--------------------------------------------------------------------------
+| Sensitive areas (My Account, CMS, System Logs, Accounts, Reports, Payroll
+| delete, Clear-all) live under a secret
+| URL prefix set in .env (SECURE_PREFIX), read through config/security.php.
+| Links in Blade MUST use route names, e.g. route('cms.index'), not hardcoded
+| '/admin/cms' URLs, otherwise they break when the prefix changes.
+| NOTE: obscurity only hides the URL. The auth.session + role middleware is
+| still the real protection, so keep both.
+*/
+$secure = config('security.secure_prefix', 'admin');
 
 /*
 |--------------------------------------------------------------------------
@@ -71,7 +84,7 @@ Route::post('/attendance/checkin', [AttendanceController::class, 'storeCheckin']
 
 // Auth
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1'); // brute-force protection
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::post('/logout', [AuthController::class, 'logout']);
 
@@ -87,19 +100,24 @@ Route::post('/login/email/resend', [EmailLoginController::class, 'resend'])
 
 // Two-Factor Authentication (email code)
 Route::get('/two-factor', [AuthController::class, 'showTwoFactorForm'])->name('two-factor.show');
-Route::post('/two-factor', [AuthController::class, 'verifyTwoFactor'])->name('two-factor.verify');
-Route::post('/two-factor/resend', [AuthController::class, 'resendTwoFactor'])->name('two-factor.resend');
+Route::post('/two-factor', [AuthController::class, 'verifyTwoFactor'])
+    ->middleware('throttle:10,1')->name('two-factor.verify');
+Route::post('/two-factor/resend', [AuthController::class, 'resendTwoFactor'])
+    ->middleware('throttle:3,1')->name('two-factor.resend');
 
 // Register
 Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
-Route::post('/register', [AuthController::class, 'register']);
+Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:10,1');
 
 // Forgot / Reset Password (email code)
 Route::get('/forgot-password', [AuthController::class, 'showForgotPasswordForm'])->name('forgot-password.show');
-Route::post('/forgot-password', [AuthController::class, 'sendResetCode'])->name('forgot-password.send');
+Route::post('/forgot-password', [AuthController::class, 'sendResetCode'])
+    ->middleware('throttle:5,1')->name('forgot-password.send');
 Route::get('/reset-password', [AuthController::class, 'showResetForm'])->name('reset-password.show');
-Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('reset-password.update');
-Route::post('/reset-password/resend', [AuthController::class, 'resendResetCode'])->name('reset-password.resend');
+Route::post('/reset-password', [AuthController::class, 'resetPassword'])
+    ->middleware('throttle:10,1')->name('reset-password.update');
+Route::post('/reset-password/resend', [AuthController::class, 'resendResetCode'])
+    ->middleware('throttle:3,1')->name('reset-password.resend');
 
 // Google OAuth
 Route::get('/auth/google/redirect', [GoogleController::class, 'redirect'])->name('google.redirect');
@@ -109,8 +127,9 @@ Route::get('/auth/google/callback', [GoogleController::class, 'callback'])->name
 Route::get('/auth/facebook/redirect', [FacebookController::class, 'redirect'])->name('facebook.redirect');
 Route::get('/auth/facebook/callback', [FacebookController::class, 'callback'])->name('facebook.callback');
 
-// TODO: check whether guests use this (landing chat widget?).
-// If it is staff only, move it to the staff group below.
+// TODO (SECURITY): this is a full CRUD resource open to the public (no login).
+// Check whether guests really need it (landing chat widget?). If yes, limit it with
+// ->only([...]) and add throttle. If it is staff only, move it to the staff group below.
 Route::resource('chatmessaging', ChatMessagingController::class);
 
 /*
@@ -118,13 +137,12 @@ Route::resource('chatmessaging', ChatMessagingController::class);
 | LOGGED IN (any role, including customers)
 |--------------------------------------------------------------------------
 */
-Route::middleware('auth.session')->group(function () {
+Route::middleware('auth.session')->group(function () use ($secure) {
 
-    // My Account (profile photo, name, password). Previously had no middleware,
-    // now requires a logged-in user.
-    Route::get('/admin/my-account', [MyAccountController::class, 'index'])->name('my-account.index');
-    Route::put('/admin/my-account', [MyAccountController::class, 'updateInfo'])->name('my-account.update');
-    Route::put('/admin/my-account/password', [MyAccountController::class, 'updatePassword'])->name('my-account.password');
+    // My Account (profile photo, name, password). Under the secure prefix.
+    Route::get("/{$secure}/my-account", [MyAccountController::class, 'index'])->name('my-account.index');
+    Route::put("/{$secure}/my-account", [MyAccountController::class, 'updateInfo'])->name('my-account.update');
+    Route::put("/{$secure}/my-account/password", [MyAccountController::class, 'updatePassword'])->name('my-account.password');
 
     // User app (customer-facing): Account, Waiver, Booking, My Bookings
     Route::prefix('app')->name('user.')->group(function () {
@@ -132,9 +150,11 @@ Route::middleware('auth.session')->group(function () {
         Route::post('/account', [UserDashboardController::class, 'update'])->name('account.update');
         Route::post('/account/two-factor', [UserDashboardController::class, 'toggleTwoFactor'])->name('account.two-factor.toggle');
         Route::post('/account/password', [UserDashboardController::class, 'requestPasswordChange'])->name('account.password.request');
-        Route::post('/account/password/confirm', [UserDashboardController::class, 'confirmPasswordChange'])->name('account.password.confirm');
+        Route::post('/account/password/confirm', [UserDashboardController::class, 'confirmPasswordChange'])
+            ->middleware('throttle:10,1')->name('account.password.confirm');
         Route::post('/account/password/cancel', [UserDashboardController::class, 'cancelPasswordChange'])->name('account.password.cancel');
-        Route::post('/account/password/resend', [UserDashboardController::class, 'resendPasswordChangeCode'])->name('account.password.resend');
+        Route::post('/account/password/resend', [UserDashboardController::class, 'resendPasswordChangeCode'])
+            ->middleware('throttle:3,1')->name('account.password.resend');
 
         Route::get('/waiver', [UserWaiverController::class, 'show'])->name('waiver');
         Route::post('/waiver', [UserWaiverController::class, 'store'])->name('waiver.store');
@@ -174,7 +194,6 @@ Route::get('/home', [HomeController::class, 'index'])->middleware('auth.session'
 
 Route::middleware(['auth.session', 'role:cashier,tl,manager,admin'])->group(function () {
 
-
     // Inventory: VIEW ONLY page, open to cashiers.
     // All add/edit/delete/restock/import/export actions are in the LEADS group below.
     Route::get('/inventory', [InventoryController::class, 'index']);
@@ -185,7 +204,7 @@ Route::middleware(['auth.session', 'role:cashier,tl,manager,admin'])->group(func
     Route::get('/pos/get_cashflow', [PosController::class, 'getCashflow']);
     Route::get('/pos/open-drawer', [PosController::class, 'openDrawer']);
     Route::get('/pos/get_transaction', [PosController::class, 'getTransaction']);
-    Route::post('/pos/verify_manager', [PosController::class, 'verifyManager']);
+    Route::post('/pos/verify_manager', [PosController::class, 'verifyManager'])->middleware('throttle:10,1');
     Route::post('/pos/save-transaction', [PosController::class, 'saveTransaction']);
     Route::post('/pos/log-void', [PosController::class, 'logVoid']);
     Route::post('/pos/void-transaction', [PosController::class, 'voidTransaction']);
@@ -198,7 +217,8 @@ Route::middleware(['auth.session', 'role:cashier,tl,manager,admin'])->group(func
     Route::get('/pos/cutoff/{id}', [PosController::class, 'cutoffDetail']);
     Route::get('/pos/cutoff-status', [PosController::class, 'cutoffStatus']);
 
-     Route::post('/ai/promo-suggest', [PromoAiController::class, 'suggest'])->name('ai.promo-suggest');
+    // (SECURITY FIX: the duplicate /ai/promo-suggest that was here let cashiers use it.
+    //  It now exists only in the LEADS group below.)
 
     // Notifications (fixed URLs must come before {notification})
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
@@ -241,12 +261,12 @@ Route::middleware(['auth.session', 'role:tl,manager,admin'])->group(function () 
     Route::get('/customer', [VisitorSummaryController::class, 'index'])->name('visitor-summary');
     Route::get('/analytics/live-count', [VisitorSummaryController::class, 'liveCount'])->name('analytics.live-count');
 
-    // AI Promo Generator (FIX: nasa loob na ng auth + role group; dati nasa pinakataas na walang proteksyon)
-    Route::post('/ai/promo-suggest', [PromoAiController::class, 'suggest'])->name('ai.promo-suggest');
+    // AI Promo Generator (inside auth + role group; leads only)
+    Route::post('/ai/promo-suggest', [PromoAiController::class, 'suggest'])
+        ->middleware('throttle:20,1')->name('ai.promo-suggest');
 
     // Analytics / ML Forecast
     Route::get('/analytics', [AnalyticsController::class, 'index']);
-    // (duplicate unnamed /ml-forecast route removed; the named one below is the one that was already active)
 
     Route::get('/api/ml/summary', [MlForecastController::class, 'summary']);
     Route::get('/api/ml/top_products', [MlForecastController::class, 'topProducts']);
@@ -278,12 +298,12 @@ Route::middleware(['auth.session', 'role:tl,manager,admin'])->group(function () 
 | Attendance, Payroll, Employees, Reports, CMS (including pricing)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth.session', 'role:manager,admin'])->group(function () {
+Route::middleware(['auth.session', 'role:manager,admin'])->group(function () use ($secure) {
 
-    // Reports
-    Route::get('/reports/present', [AnalyticsController::class, 'reportPresent']);
-    Route::get('/reports/historical', [AnalyticsController::class, 'reportHistorical']);
-    Route::get('/reports/bir', [AnalyticsController::class, 'reportBir']);
+    // Reports (under the secure prefix, now named so Blade can use route())
+    Route::get("/{$secure}/reports/present", [AnalyticsController::class, 'reportPresent'])->name('reports.present');
+    Route::get("/{$secure}/reports/historical", [AnalyticsController::class, 'reportHistorical'])->name('reports.historical');
+    Route::get("/{$secure}/reports/bir", [AnalyticsController::class, 'reportBir'])->name('reports.bir');
 
     Route::get('/Snackbar', fn () => app(ZoneForecastController::class)->index('Snackbar'));
 
@@ -310,8 +330,8 @@ Route::middleware(['auth.session', 'role:manager,admin'])->group(function () {
     Route::post('/employees/{employee}/deactivate', [EmployeeController::class, 'deactivate'])->name('employees.deactivate');
     Route::post('/employees/{employee}/activate', [EmployeeController::class, 'activate'])->name('employees.activate');
 
-    // CMS
-    Route::prefix('admin/cms')->name('cms.')->group(function () {
+    // CMS (under the secure prefix)
+    Route::prefix("{$secure}/cms")->name('cms.')->group(function () {
 
         Route::get('/', [CmsController::class, 'index'])->name('index');
 
@@ -346,26 +366,27 @@ Route::middleware(['auth.session', 'role:manager,admin'])->group(function () {
 | batches, move those routes to the manager,admin group above.
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth.session', 'role:admin'])->group(function () {
+Route::middleware(['auth.session', 'role:admin'])->group(function () use ($secure) {
 
-    // System logs
-    Route::get('/admin/system-logs', [SystemLogController::class, 'index'])->name('system-logs.index');
+    // System logs (under the secure prefix)
+    Route::get("/{$secure}/system-logs", [SystemLogController::class, 'index'])->name('system-logs.index');
     // "Yes, it's me" / "No, it's not me" review for failed logins
-    Route::post('/admin/system-logs/{id}/review', [SystemLogController::class, 'review'])->name('system-logs.review');
+    Route::post("/{$secure}/system-logs/{id}/review", [SystemLogController::class, 'review'])->name('system-logs.review');
 
-    // Accounts
-    Route::get('/accounts', [AccountController::class, 'index']);
-    Route::get('/accounts/create', [AccountController::class, 'create']);
-    Route::post('/accounts/store', [AccountController::class, 'store']);
-    Route::put('/accounts/update/{id}', [AccountController::class, 'update']);
-    Route::delete('/accounts/delete/{id}', [AccountController::class, 'destroy']);
+    // Accounts (under the secure prefix, now named so Blade can use route())
+    Route::get("/{$secure}/accounts", [AccountController::class, 'index'])->name('accounts.index');
+    Route::get("/{$secure}/accounts/create", [AccountController::class, 'create'])->name('accounts.create');
+    Route::post("/{$secure}/accounts/store", [AccountController::class, 'store'])->name('accounts.store');
+    Route::put("/{$secure}/accounts/update/{id}", [AccountController::class, 'update'])->name('accounts.update');
+    Route::delete("/{$secure}/accounts/delete/{id}", [AccountController::class, 'destroy'])->name('accounts.destroy');
 
-    // Payroll batch delete (two URLs, same controller method)
-    Route::delete('/attendance/payroll-history/{batch}', [AttendanceController::class, 'deleteBatch']);
-    Route::delete('/payroll-history/bulk-delete', [AttendanceController::class, 'bulkDeleteBatches'])->name('payroll-history.bulkDelete');
-    Route::delete('/payroll-history/{batch}', [AttendanceController::class, 'deleteBatch'])->name('payroll-history.delete-batch');
+    // Payroll batch delete (two URLs, same controller method), under the secure prefix.
+    // bulk-delete must stay BEFORE {batch}.
+    Route::delete("/{$secure}/attendance/payroll-history/{batch}", [AttendanceController::class, 'deleteBatch']);
+    Route::delete("/{$secure}/payroll-history/bulk-delete", [AttendanceController::class, 'bulkDeleteBatches'])->name('payroll-history.bulkDelete');
+    Route::delete("/{$secure}/payroll-history/{batch}", [AttendanceController::class, 'deleteBatch'])->name('payroll-history.delete-batch');
 
-    // Delete everything
-    Route::delete('/attendance/clear-all', [AttendanceController::class, 'clearAll'])->name('attendance.clear-all');
-    Route::delete('/employees/clear-all', [EmployeeController::class, 'clearAll'])->name('employees.clear-all');
+    // Delete everything (under the secure prefix)
+    Route::delete("/{$secure}/attendance/clear-all", [AttendanceController::class, 'clearAll'])->name('attendance.clear-all');
+    Route::delete("/{$secure}/employees/clear-all", [EmployeeController::class, 'clearAll'])->name('employees.clear-all');
 });
