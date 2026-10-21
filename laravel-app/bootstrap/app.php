@@ -20,6 +20,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // Huwag gumamit ng '*' maliban kung sigurado kang may proxy sa harap.
         $trustedProxies = [];
 
+        $middleware->trustProxies(at: '*');
+
         $middleware->trustProxies(at: $trustedProxies);
 
         // Public ang QR check-in at protektado na ito ng QR token at PIN,
