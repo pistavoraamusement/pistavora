@@ -766,7 +766,7 @@
     <div class="modal-overlay @if($hasAddErrors) active @endif" id="addModal">
         <div class="modal modal-wide">
             <div class="modal-title"><i class="fas fa-user-plus"></i> Add new account</div>
-            <form action="/accounts/store" method="POST">
+            <form action="{{ route('accounts.store') }}" method="POST">
                 @csrf
                 <div class="form-grid">
                     <div class="form-group">

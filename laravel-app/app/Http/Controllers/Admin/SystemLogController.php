@@ -6,6 +6,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\SystemLog;
 use App\Services\SystemLogger;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -24,7 +26,7 @@ class SystemLogController extends Controller
     }
 
     // Base query: itinatago ang "updated their own profile" (pangalan/photo lang ang binago)
-    private function visible()
+    private function visible(): Builder
     {
         return SystemLog::query()->where(function ($q) {
             $q->where('event_type', '!=', 'account_updated')
@@ -79,7 +81,7 @@ class SystemLogController extends Controller
     }
 
     // "Yes, it's me" / "No, it's not me" para sa failed login
-    public function review(Request $request, $id)
+    public function review(Request $request, int|string $id): JsonResponse
     {
         $this->ensureAdmin();
 

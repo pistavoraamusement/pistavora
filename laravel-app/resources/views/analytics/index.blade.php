@@ -137,21 +137,21 @@
     <nav class="sidebar-nav">
       <div class="nav-label">Operations</div>
       @if(session('role') === 'cashier')
-        <a href="/pos"><i class="fa-solid fa-cash-register"></i> Point of Sale</a>
-        <a href="/inventory"><i class="fa-solid fa-boxes-stacked"></i> Inventory</a>
+        {{ route('pos.index') }}<i class="fa-solid fa-cash-register"></i> Point of Sale</a>
+        <a href="{{ route('inventory.index') }}"><i class="fa-solid fa-boxes-stacked"></i> Inventory</a>
       @else
-        <a href="/pos"><i class="fa-solid fa-cash-register"></i> Point of Sale</a>
-        <a href="/inventory"><i class="fa-solid fa-boxes-stacked"></i> Inventory</a>
-        <a href="/calculation"><i class="fa-solid fa-calculator"></i> Calculation</a>
+        <a href="{{ route('pos.index') }}"><i class="fa-solid fa-cash-register"></i> Point of Sale</a>
+        <a href="{{ route('inventory.index') }}"><i class="fa-solid fa-boxes-stacked"></i> Inventory</a>
+        <a href="{{ route('calculation.index') }}"><i class="fa-solid fa-calculator"></i> Calculation</a>
         <div class="nav-label">People</div>
-        <a href="/customer"><i class="fa-solid fa-users"></i> Customer Management</a>
-        <a href="/attendance"><i class="fa-solid fa-clipboard-check"></i> Attendance</a>
-        <a href="/accounts/create"><i class="fa-solid fa-user-plus"></i> Account Management</a>
+        <a href="{{ route('customer.index') }}"><i class="fa-solid fa-users"></i> Customer Management</a>
+        <a href="{{ route('attendance.index') }}"><i class="fa-solid fa-clipboard-check"></i> Attendance</a>
+        <a href="{{ route('accounts.create') }}"><i class="fa-solid fa-user-plus"></i> Account Management</a>
 
         <div class="nav-label">Insights</div>
-        <a href="/analytics" class="active"><i class="fa-solid fa-chart-line"></i> Analytics</a>
+        <a href="{{ route('analytics.index') }}" class="active"><i class="fa-solid fa-chart-line"></i> Analytics</a>
         @if(session('role') === 'admin')
-          <a href="/ml-forecast"><i class="fa-solid fa-brain"></i> Inventory Forecast</a>
+          <a href="{{ route('ml-forecast.index') }}"><i class="fa-solid fa-brain"></i> Inventory Forecast</a>
         @endif
       @endif
     </nav>

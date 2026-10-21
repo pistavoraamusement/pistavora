@@ -18,7 +18,7 @@ class AuthController extends Controller
         string $severity = 'info',
         array $context = [],
         bool $isAnomaly = false,
-        $userId = null,
+        int|string|null $userId = null,
         ?string $email = null,
         string $module = 'auth'
     ): void {
@@ -53,7 +53,8 @@ class AuthController extends Controller
     }
 
     // LOG: successful login (called after the session is set / after 2FA)
-    private function logLoginSuccess($user, bool $via2fa = false): void
+    // $user is a stdClass row from DB::table('users')->first()
+    private function logLoginSuccess(object $user, bool $via2fa = false): void
     {
         try {
             $ip      = request()->ip();
@@ -136,7 +137,9 @@ class AuthController extends Controller
 
                 session([
                     'twofa_pending_user_id' => $user->user_id,
-                    'twofa_redirect' => $user->role === 'customer' ? '/app/waiver' : ($user->role === 'cashier' ? '/home' : '/ml-forecast'),
+                    'twofa_redirect' => $user->role === 'customer'
+                        ? route('user.waiver')
+                        : ($user->role === 'cashier' ? '/home' : route('ml.forecast')),
                 ]);
 
                 // LOG: password is correct, waiting for the 2FA code
@@ -165,14 +168,14 @@ class AuthController extends Controller
             $this->logLoginSuccess($user);
 
             if ($user->role === 'customer') {
-                return redirect('/app/waiver');
+                return redirect()->route('user.waiver');
             }
 
             if ($user->role === 'cashier') {
                 return redirect('/home');
             }
 
-            return redirect('/ml-forecast');
+            return redirect()->route('ml.forecast');
         }
 
         if ($passwordOk) {
@@ -271,7 +274,7 @@ class AuthController extends Controller
             'two_factor_expires_at' => null,
         ]);
 
-        $redirect = session('twofa_redirect', '/app/waiver');
+        $redirect = session('twofa_redirect', route('user.waiver'));
         session()->forget(['twofa_pending_user_id', 'twofa_redirect']);
 
         session()->regenerate();
@@ -421,7 +424,7 @@ class AuthController extends Controller
             'accounts'
         );
 
-        return redirect('/app/waiver');
+        return redirect()->route('user.waiver');
     }
 
     public function showForgotPasswordForm()

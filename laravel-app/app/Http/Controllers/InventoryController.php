@@ -230,7 +230,16 @@ class InventoryController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Unable to read the uploaded file.']);
         }
 
-        $header = array_map(function ($h) { return strtolower(trim($h)); }, fgetcsv($handle));
+        $headerRow = fgetcsv($handle);
+        if (!$headerRow) {
+            fclose($handle);
+            return response()->json(['status' => 'error', 'message' => 'The CSV file is empty.']);
+        }
+
+        // strtolower + trim, at tanggalin ang UTF-8 BOM (madalas nasa Excel-saved CSV)
+        $header = array_map(function ($h) {
+            return strtolower(trim(preg_replace('/^\xEF\xBB\xBF/', '', (string) $h)));
+        }, $headerRow);
 
         // Cache categories (zone+name -> category row) para hindi paulit-ulit mag-query sa loop
         $categories = DB::table('categories')->get()->keyBy(function ($c) {
@@ -241,6 +250,13 @@ class InventoryController extends Controller
         $skipped  = 0;
 
         while (($row = fgetcsv($handle)) !== false) {
+            // Skip blank lines at mga row na hindi tugma ang bilang ng column sa header
+            // (array_combine ay nagta-throw ng error sa PHP 8 kapag hindi magkapareho ang bilang)
+            if ($row === [null] || count($row) !== count($header)) {
+                $skipped++;
+                continue;
+            }
+
             $rowData = array_combine($header, $row);
 
             $name         = $rowData['product_name']  ?? null;
@@ -283,7 +299,7 @@ class InventoryController extends Controller
 
         $message = "Imported {$imported} product(s) successfully!";
         if ($skipped > 0) {
-            $message .= " {$skipped} row(s) skipped (zone/category not found).";
+            $message .= " {$skipped} row(s) skipped (zone/category not found or invalid row).";
         }
 
         return response()->json(['status' => 'success', 'message' => $message]);
@@ -295,14 +311,14 @@ class InventoryController extends Controller
     // (add/edit/delete/restock) kahit mag-fail ang broadcast.
     // $message ay pwedeng multi-line (\n) — ang popup sa frontend na
     // ang bahalang mag-preserve ng line breaks (white-space: pre-line).
-    private function notify($title, $message, $url = null)
+    private function notify(string $title, string $message, ?string $url = null): void
     {
         try {
             $notif = \App\Models\Notification::create([
                 'type'    => 'inventory',
                 'title'   => $title,
                 'message' => $message,
-                'url'     => $url ?: url('/inventory'),
+                'url'     => $url ?: route('inventory.index'),
             ]);
             broadcast(new \App\Events\NewSystemNotification($notif));
         } catch (\Throwable $e) {
@@ -666,7 +682,7 @@ class InventoryController extends Controller
     }
 
     // ─── STOCK ALERT CHECK (Low Stock / Out of Stock) ─────
-    private function checkStockAlert($productId)
+    private function checkStockAlert(int|string|null $productId): void
     {
         $product = DB::table('products')
             ->join('categories', 'products.category_id', '=', 'categories.category_id')

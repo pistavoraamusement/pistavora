@@ -17,7 +17,7 @@ class HomeController extends Controller
         }
 
         if ($role === 'cashier') {
-            return redirect('/inventory');
+            return redirect()->route('inventory.index');
         }
 
         return view('index');

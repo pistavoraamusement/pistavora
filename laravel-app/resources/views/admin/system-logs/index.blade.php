@@ -271,7 +271,7 @@
         // Saan pupunta ang "Change password" button (My Account page)
         $accountUrl = \Illuminate\Support\Facades\Route::has('my-account.index')
             ? route('my-account.index')
-            : (\Illuminate\Support\Facades\Route::has('my-account') ? route('my-account') : url('/admin/my-account'));
+            : (\Illuminate\Support\Facades\route('my-account') : url('/admin/my-account'));
 
         $filterKeys = ['severity', 'module', 'event_type', 'from', 'to', 'search', 'anomaly_only'];
         $hasFilters = collect(request()->only($filterKeys))->filter()->isNotEmpty();
@@ -771,7 +771,7 @@
 
             // ── REVIEW MODAL (failed login) ──
             const CSRF = '{{ csrf_token() }}';
-            const REVIEW_BASE = '{{ url('/admin/system-logs') }}';
+            const REVIEW_BASE = '{{ route('system-logs.index') }}';
             const overlay = document.getElementById('lmOverlay');
             const paneAsk = document.getElementById('lmAsk');
             const paneSecure = document.getElementById('lmSecure');
@@ -786,7 +786,7 @@
             const lmSecureBtn = document.getElementById('lmSecureBtn');
             const lmSecureBtnText = document.getElementById('lmSecureBtnText');
             const MY_ACCOUNT_URL = '{{ $accountUrl }}#pwForm';
-            const ACCOUNTS_URL = '{{ url('/accounts') }}';
+            const ACCOUNTS_URL = '{{ route('accounts.index') }}';
             let currentMine = true;
             let currentWho = '';
             const lmStatus = document.getElementById('lmStatus');

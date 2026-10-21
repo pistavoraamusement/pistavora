@@ -44,6 +44,6 @@ class GoogleController extends Controller
         Session::put('user_id', $user->user_id);
         Session::put('user_name', $user->name);
 
-        return redirect('/app/dashboard');
+       return redirect()->route('user.dashboard');
     }
 }

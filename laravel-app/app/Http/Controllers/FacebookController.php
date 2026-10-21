@@ -62,6 +62,6 @@ class FacebookController extends Controller
 
         Auth::loginUsingId($user->user_id);
 
-        return redirect('/app/booking');
+       return redirect()->route('user.booking');
     }
 }

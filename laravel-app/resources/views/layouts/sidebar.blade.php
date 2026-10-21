@@ -1,3 +1,4 @@
+   @php $securePrefix = config('security.secure_prefix', 'admin'); @endphp
 <!DOCTYPE html>
 <html lang="en">
 
@@ -1645,14 +1646,14 @@
                     <div class="nav-label">Operations</div>
 
                     @if (session('role') === 'cashier')
-                        <a href="/pos" class="{{ request()->is('pos') ? 'active' : '' }}">
+                        <a href="{{ route('pos.index') }}" class="{{ request()->is('pos') ? 'active' : '' }}">
                             <i class="fa-solid fa-cash-register"></i> <span>Point of Sale</span>
                         </a>
-                        <a href="/inventory" class="{{ request()->is('inventory') ? 'active' : '' }}">
+                        <a href="{{ route('inventory.index') }}" class="{{ request()->is('inventory') ? 'active' : '' }}">
                             <i class="fa-solid fa-boxes-stacked"></i> <span>Inventory</span>
                         </a>
                     @else
-                        <a href="/inventory" class="{{ request()->is('inventory') ? 'active' : '' }}">
+                        <a href="{{ route('inventory.index') }}" class="{{ request()->is('inventory') ? 'active' : '' }}">
                             <i class="fa-solid fa-boxes-stacked"></i> <span>Inventory</span>
                         </a>
                     @endif
@@ -1730,7 +1731,7 @@
                             </div>
                         </div>
 
-                        <a href="/accounts/create" class="{{ request()->is('accounts/create') ? 'active' : '' }}">
+                        <a href="{{ route('accounts.create') }}" class="{{ request()->is('accounts/create') ? 'active' : '' }}">
                             <i class="fa-solid fa-user-plus"></i> <span>Account Management</span>
                         </a>
                     </div>
@@ -1815,7 +1816,7 @@
                                     <a href="/RollerFever" class="{{ request()->is('RollerFever') ? 'active' : '' }}">
                                         <i class="fa-solid fa-bolt"></i> <span>Skataya</span>
                                     </a>
-                                    <a href="/Snackbar" class="{{ request()->is('Snackbar') ? 'active' : '' }}">
+                                    <a href="{{ route('zone.snackbar') }}" class="{{ request()->is('Snackbar') ? 'active' : '' }}">
                                         <i class="fa-solid fa-burger"></i> <span>Snackbar</span>
                                     </a>
                                     <a href="/DinoAdventure" class="{{ request()->is('DinoAdventure') ? 'active' : '' }}">
@@ -1830,10 +1831,10 @@
                             <a href="/RollerFever" class="{{ request()->is('RollerFever') ? 'active' : '' }}">
                                 <i class="fa-solid fa-bolt"></i> <span>Skataya</span>
                             </a>
-                            <a href="/Snackbar" class="{{ request()->is('Snackbar') ? 'active' : '' }}">
+                            <a href="{{ route('zone.snackbar') }}" class="{{ request()->is('Snackbar') ? 'active' : '' }}">
                                 <i class="fa-solid fa-burger"></i> <span>Snackbar</span>
                             </a>
-                            <a href="/DinoAdventure" class="{{ request()->is('DinoAdventure') ? 'active' : '' }}">
+                            <a href="{{ route('zone.DinoAdventure') }}" class="{{ request()->is('DinoAdventure') ? 'active' : '' }}">
                                 <i class="fa-solid fa-dragon"></i> <span>DinoLakbay</span>
                             </a>
                         @endif

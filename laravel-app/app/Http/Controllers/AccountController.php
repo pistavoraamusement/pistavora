@@ -75,7 +75,7 @@ class AccountController extends Controller
             $request->role === 'admin'
         );
 
-        return redirect('/accounts')->with('success', 'Account created successfully!');
+        return redirect()->route('accounts.index')->with('success', 'Account created successfully!');
     }
 
     public function update(Request $request, int $user_id)
@@ -154,7 +154,7 @@ class AccountController extends Controller
             }
         }
 
-        return redirect('/accounts')->with('success', 'Account updated successfully!');
+        return redirect()->route('accounts.index')->with('success', 'Account updated successfully!');
     }
 
     public function destroy(int $user_id)
@@ -185,7 +185,7 @@ class AccountController extends Controller
             );
         }
 
-        return redirect('/accounts')->with('success', 'Account deleted successfully!');
+        return redirect()->route('accounts.index')->with('success', 'Account deleted successfully!');
     }
 
     public function create()

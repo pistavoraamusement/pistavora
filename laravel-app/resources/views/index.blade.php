@@ -356,7 +356,7 @@
     @if (session('role') === 'cashier')
         <div class="section-label">Your tools</div>
         <div class="card-grid">
-            <a href="/pos" class="app-card">
+            <a href="{{ route('pos.index') }}" class="app-card">
                 <div class="app-card-icon"><i class="fa-solid fa-cash-register"></i></div>
                 <div class="app-card-text">
                     <h2>Point of Sale</h2>
@@ -364,7 +364,7 @@
                 </div>
                 <i class="fa-solid fa-chevron-right app-card-arrow"></i>
             </a>
-            <a href="/inventory" class="app-card">
+            <a href="{{ route('inventory.index') }}" class="app-card">
                 <div class="app-card-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
                 <div class="app-card-text">
                     <h2>Inventory</h2>
@@ -376,7 +376,7 @@
     @else
         <div class="section-label">Operations</div>
         <div class="card-grid">
-            <a href="/inventory" class="app-card">
+            <a href="{{ route('inventory.index') }}" class="app-card">
                 <div class="app-card-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
                 <div class="app-card-text">
                     <h2>Inventory</h2>
@@ -393,7 +393,7 @@
                 {{-- Sales Forecast is the parent card; the 3 zone pages are nested inside it --}}
                 <div class="forecast-group" style="grid-column: span 1;">
                     <div class="forecast-main-row">
-                        <a href="/ml-forecast" class="app-card" style="border:none;box-shadow:none;padding:0;flex:1;">
+                        <a href="{{ route('ml-forecast.index') }}" class="app-card" style="border:none;box-shadow:none;padding:0;flex:1;">
                             <div class="app-card-icon"><i class="fa-solid fa-chart-line"></i></div>
                             <div class="app-card-text">
                                 <h2>Sales Forecast</h2>
@@ -406,14 +406,14 @@
                         </button>
                     </div>
                     <div class="forecast-sublist" id="forecastCardSublist">
-                        <a href="/fieldOfRides"><i class="fa-solid fa-ferris-wheel"></i> PiyestaRides</a>
-                        <a href="/RollerFever"><i class="fa-solid fa-bolt"></i> Skataya</a>
-                        <a href="/DinoAdventure"><i class="fa-solid fa-dragon"></i> DinoLakbay</a>
+                        <a href="{{ route('zone.fieldOfRides') }}"><i class="fa-solid fa-ferris-wheel"></i> PiyestaRides</a>
+                        <a href="{{ route('zone.RollerFever') }}"><i class="fa-solid fa-bolt"></i> Skataya</a>
+                        <a href="{{ route('zone.DinoAdventure') }}"><i class="fa-solid fa-dragon"></i> DinoLakbay</a>
                     </div>
                 </div>
             @else
                 {{-- Non-admin, non-cashier roles: no Sales Forecast access, so these stay as plain cards --}}
-                <a href="/fieldOfRides" class="app-card">
+                <a href="{{ route('zone.fieldOfRides') }}" class="app-card">
                     <div class="app-card-icon"><i class="fa-solid fa-ferris-wheel"></i></div>
                     <div class="app-card-text">
                         <h2>PiyestaRides</h2>
@@ -421,7 +421,7 @@
                     </div>
                     <i class="fa-solid fa-chevron-right app-card-arrow"></i>
                 </a>
-                <a href="/RollerFever" class="app-card">
+                <a href="{{ route('zone.RollerFever') }}" class="app-card">
                     <div class="app-card-icon"><i class="fa-solid fa-bolt"></i></div>
                     <div class="app-card-text">
                         <h2>Skataya</h2>
@@ -429,7 +429,7 @@
                     </div>
                     <i class="fa-solid fa-chevron-right app-card-arrow"></i>
                 </a>
-                <a href="/DinoAdventure" class="app-card">
+                <a href="{{ route('zone.DinoAdventure') }}" class="app-card">
                     <div class="app-card-icon"><i class="fa-solid fa-dragon"></i></div>
                     <div class="app-card-text">
                         <h2>DinoLakbay</h2>

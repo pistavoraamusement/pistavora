@@ -959,7 +959,7 @@ class PosController extends Controller
                 'type'    => $type,
                 'title'   => $title,
                 'message' => $message,
-                'url'     => $url ?: url('/pos'),
+                'url'     => $url ?: route('pos.index'),
             ]);
             broadcast(new \App\Events\NewSystemNotification($notif));
         } catch (\Throwable $e) {
@@ -1257,7 +1257,7 @@ class PosController extends Controller
         $this->notify(
             'Sales Report Printed',
             "The daily sales cut-off report was generated and printed.\n" . implode("\n", $lines),
-            url('/pos')
+            route('pos.index')
         );
 
         return response()->json([
@@ -1542,7 +1542,7 @@ class PosController extends Controller
             'Transaction Voided',
             "Invoice #" . str_pad($transactionId, 11, '0', STR_PAD_LEFT) . " was voided.\n" .
             "Reason: {$data['reason']}\nAuthorized by: {$data['authorized_by']}",
-            url('/pos')
+            route('pos.index')
         );
 
         // Return the full details of the voided transaction so the frontend

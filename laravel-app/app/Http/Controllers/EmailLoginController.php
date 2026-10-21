@@ -138,7 +138,8 @@ class EmailLoginController extends Controller
         }
     }
 
-    private function createAccount(string $email)
+    // Returns the new users row (stdClass)
+    private function createAccount(string $email): object
     {
         $local = Str::before($email, '@');
 
@@ -168,7 +169,8 @@ class EmailLoginController extends Controller
         return DB::table('users')->where('user_id', $userId)->first();
     }
 
-    private function loginUser($user)
+    // $user is a stdClass row from DB::table('users')
+    private function loginUser(object $user)
     {
         session()->forget(['emaillogin', 'emaillogin_email']);
         session()->regenerate();
@@ -180,17 +182,17 @@ class EmailLoginController extends Controller
         ]);
 
         if ($user->role === 'customer') {
-            return redirect('/app/waiver');
+            return redirect()->route('user.waiver');
         }
         if ($user->role === 'cashier') {
             return redirect('/home');
         }
-        return redirect('/ml-forecast');
+        return redirect()->route('ml.forecast');
     }
 
     // ── trusted device (14-day, sliding) ──
 
-    private function deviceIsTrusted(Request $request, $user): bool
+    private function deviceIsTrusted(Request $request, object $user): bool
     {
         $raw = $request->cookie(self::COOKIE);
         if (!$raw) {
@@ -224,7 +226,7 @@ class EmailLoginController extends Controller
         }
     }
 
-    private function trustDevice(Request $request, $user): void
+    private function trustDevice(Request $request, object $user): void
     {
         // drop the old token of this browser, if any
         $old = $request->cookie(self::COOKIE);

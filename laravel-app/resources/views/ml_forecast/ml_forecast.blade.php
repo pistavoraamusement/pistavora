@@ -10,10 +10,10 @@
 
     // Same URLs as the sidebar submenu
     $zoneUrls = [
-        'Skataya'      => url('/RollerFever'),
-        'Snackbar'     => url('/Snackbar'),
-        'Piyestarides' => url('/fieldOfRides'),
-        'Dinolakbay'   => url('/DinoAdventure'),
+        'Skataya'      => route('zone.rollerFever'),
+        'Snackbar'     => route('zone.snackbar'),
+        'Piyestarides' => route('zone.fieldOfRides'),
+        'Dinolakbay'   => route('zone.dinoAdventure'),
     ];
 @endphp
 
