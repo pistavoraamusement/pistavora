@@ -1801,7 +1801,7 @@
                         @if (session('role') === 'admin')
                             <div class="nav-group">
                                 <div class="nav-parent-row">
-                                    <a href="/ml-forecast" class="nav-parent-link {{ $isOnForecastRoute ? 'active' : '' }}">
+                                    <a href="{{ route('ml.forecast') }}" class="nav-parent-link {{ $isOnForecastRoute ? 'active' : '' }}">
                                         <i class="fa-solid fa-brain"></i> <span>Sales Forecast</span>
                                     </a>
                                     <button type="button" class="nav-caret-btn {{ $submenuOpen ? 'open' : '' }}"
@@ -1810,31 +1810,31 @@
                                     </button>
                                 </div>
                                 <div class="nav-submenu {{ $submenuOpen ? 'open' : '' }}" id="forecastSubmenu">
-                                    <a href="/fieldOfRides" class="{{ request()->is('fieldOfRides') ? 'active' : '' }}">
+                                    <a href="{{ route('zone.fieldOfRides') }}" class="{{ request()->is('fieldOfRides') ? 'active' : '' }}">
                                         <i class="fa-solid fa-flag-checkered"></i> <span>PiyestaRides</span>
                                     </a>
-                                    <a href="/RollerFever" class="{{ request()->is('RollerFever') ? 'active' : '' }}">
+                                    <a href="{{ route('zone.rollerFever') }}" class="{{ request()->is('RollerFever') ? 'active' : '' }}">
                                         <i class="fa-solid fa-bolt"></i> <span>Skataya</span>
                                     </a>
                                     <a href="{{ route('zone.snackbar') }}" class="{{ request()->is('Snackbar') ? 'active' : '' }}">
                                         <i class="fa-solid fa-burger"></i> <span>Snackbar</span>
                                     </a>
-                                    <a href="/DinoAdventure" class="{{ request()->is('DinoAdventure') ? 'active' : '' }}">
+                                    <a href="{{ route('zone.dinoAdventure') }}" class="{{ request()->is('DinoAdventure') ? 'active' : '' }}">
                                         <i class="fa-solid fa-dragon"></i> <span>DinoLakbay</span>
                                     </a>
                                 </div>
                             </div>
                         @else
-                            <a href="/fieldOfRides" class="{{ request()->is('fieldOfRides') ? 'active' : '' }}">
+                            <a href="{{ route('zone.fieldOfRides') }}" class="{{ request()->is('fieldOfRides') ? 'active' : '' }}">
                                 <i class="fa-solid fa-flag-checkered"></i> <span>PiyestaRides</span>
                             </a>
-                            <a href="/RollerFever" class="{{ request()->is('RollerFever') ? 'active' : '' }}">
+                            <a href="{{ route('zone.rollerFever') }}" class="{{ request()->is('RollerFever') ? 'active' : '' }}">
                                 <i class="fa-solid fa-bolt"></i> <span>Skataya</span>
                             </a>
                             <a href="{{ route('zone.snackbar') }}" class="{{ request()->is('Snackbar') ? 'active' : '' }}">
                                 <i class="fa-solid fa-burger"></i> <span>Snackbar</span>
                             </a>
-                            <a href="{{ route('zone.DinoAdventure') }}" class="{{ request()->is('DinoAdventure') ? 'active' : '' }}">
+                            <a href="{{ route('zone.dinoAdventure') }}" class="{{ request()->is('DinoAdventure') ? 'active' : '' }}">
                                 <i class="fa-solid fa-dragon"></i> <span>DinoLakbay</span>
                             </a>
                         @endif

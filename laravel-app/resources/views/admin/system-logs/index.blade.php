@@ -270,8 +270,8 @@
 
         // Saan pupunta ang "Change password" button (My Account page)
         $accountUrl = \Illuminate\Support\Facades\Route::has('my-account.index')
-            ? route('my-account.index')
-            : (\Illuminate\Support\Facades\route('my-account') : url('/admin/my-account'));
+    ? route('my-account.index')
+    : url('/' . trim(config('security.secure_prefix', 'admin'), '/') . '/my-account');
 
         $filterKeys = ['severity', 'module', 'event_type', 'from', 'to', 'search', 'anomaly_only'];
         $hasFilters = collect(request()->only($filterKeys))->filter()->isNotEmpty();
