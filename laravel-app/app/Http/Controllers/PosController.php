@@ -142,7 +142,7 @@ class PosController extends Controller
 
     // Receipt reprint: always logged; flagged as an anomaly when repeated or
     // when the invoice is already voided.
-    private function logReprint($txn): void
+    private function logReprint(\stdClass $txn): void
     {
         try {
             $invoiceRef = 'Inv #' . str_pad($txn->transaction_id, 11, '0', STR_PAD_LEFT);
@@ -1065,18 +1065,15 @@ class PosController extends Controller
         $overallPayments = ['cash' => 0, 'card' => 0, 'gcash' => 0, 'maya' => 0, 'stardeals' => 0, 'klook' => 0, 'online' => 0];
         $byCashier = [];
 
-        // Must match CATEGORIES_SNACKBAR in pos.js. If a new snackbar category
-        // is added there, add it here too.
-        $snackbarCategories = ['sweets', 'beverages', 'snacks', 'noodles', 'icecream'];
-
         // Fixed order/labels so zones always appear in a consistent order in the
         // report, even if one has no sales (empty ones are filtered out later).
+        // Zones come straight from categories.zone in the database.
         $byZone = [
-        'skataya'      => ['zone_label' => 'Skataya',      'items' => [], 'total_sales' => 0],
-        'snackbar'     => ['zone_label' => 'Snackbar',     'items' => [], 'total_sales' => 0],
-        'piyestarides' => ['zone_label' => 'Piyestarides', 'items' => [], 'total_sales' => 0],
-        'dinolakbay'   => ['zone_label' => 'Dinolakbay',   'items' => [], 'total_sales' => 0],
-    ];
+            'skataya'      => ['zone_label' => 'Skataya',      'items' => [], 'total_sales' => 0],
+            'snackbar'     => ['zone_label' => 'Snackbar',     'items' => [], 'total_sales' => 0],
+            'piyestarides' => ['zone_label' => 'Piyestarides', 'items' => [], 'total_sales' => 0],
+            'dinolakbay'   => ['zone_label' => 'Dinolakbay',   'items' => [], 'total_sales' => 0],
+        ];
 
         foreach ($transactions as $t) {
             $items = $itemsByTxn[$t->transaction_id] ?? [];
@@ -1099,14 +1096,9 @@ class PosController extends Controller
                 $qty = $it['qty'];
                 $line = $it['price'] * $it['qty'];
 
-                $rawZone  = $it['zone'] ?? 'other';
-                $category = $it['category'] ?? '';
-
-                // Roller Fever zone → split further: Snackbar categories vs.
-                // skates/rides/rentals/billiards/massage/socks
-                $zoneKey = ($rawZone === 'skataya' && in_array($category, $snackbarCategories))
-                ? 'snackbar'
-                : $rawZone;
+                // Each category now has its own zone in the DB (Snackbar included),
+                // so no extra splitting is needed.
+                $zoneKey = $it['zone'] ?? 'other';
 
                 if (!isset($overallItems[$name])) $overallItems[$name] = ['name' => $name, 'qty' => 0, 'total' => 0];
                 $overallItems[$name]['qty'] += $qty;
@@ -1118,7 +1110,7 @@ class PosController extends Controller
                 $byCashier[$cashierName]['items'][$name]['qty'] += $qty;
                 $byCashier[$cashierName]['items'][$name]['total'] += $line;
 
-                // === ZONE BREAKDOWN (Snackbar included) ===
+                // === ZONE BREAKDOWN ===
                 if (!isset($byZone[$zoneKey])) {
                     $byZone[$zoneKey] = ['zone_label' => ucwords($zoneKey), 'items' => [], 'total_sales' => 0];
                 }
@@ -1128,7 +1120,7 @@ class PosController extends Controller
                 $byZone[$zoneKey]['items'][$name]['qty'] += $qty;
                 $byZone[$zoneKey]['items'][$name]['total'] += $line;
                 $byZone[$zoneKey]['total_sales'] += $line;
-                // ==========================================
+                // ======================
             }
 
             $overallTotal += $t->total_amount;
@@ -1212,6 +1204,15 @@ class PosController extends Controller
             ->whereIn('id', $voidedItems->pluck('id'))
             ->update(['cutoff_id' => $cutoffId]);
 
+            DB::table('products')
+        ->whereIn('category_id', function ($q) {
+            $q->select('category_id')->from('categories')->where('is_stock_tracked', 1);
+        })
+        ->update([
+            'beginning_stock' => DB::raw('stock'),
+            'actual_count'    => null,
+            'counted_at'      => null,
+        ]);
         $voidedTxnCount = $voidedTxns->count();
         $voidedTxnTotal = (float) $voidedTxns->sum('total_amount');
 

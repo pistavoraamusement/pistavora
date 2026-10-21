@@ -707,6 +707,41 @@ document.getElementById('submitRestockBtn').addEventListener('click', function (
     }, 'Updating stock…');
 });
 
+// ─── SAVE PHYSICAL COUNT ───
+document.addEventListener('change', async (e) => {
+    const inp = e.target.closest('.count-input');
+    if (!inp || inp.value === '') return;
+
+    const cell = document.getElementById('var-' + inp.dataset.id);
+
+    try {
+        const res = await fetch('/inventory/count', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({ id: inp.dataset.id, actual_count: inp.value })
+        });
+        const d = await res.json();
+
+        if (d.status !== 'success') {
+            cell.textContent = d.message || 'Error';
+            return;
+        }
+
+        const v = d.variance;
+        cell.innerHTML = v === 0
+            ? '<span style="color:#1FAE9E">Balanced</span>'
+            : v < 0
+                ? `<span style="color:#DC2626">Short ${Math.abs(v)}</span>`
+                : `<span style="color:#D97706">Over ${v}</span>`;
+    } catch (err) {
+        cell.textContent = 'Failed to save';
+    }
+});
+
 /* ─── TABLE CLICK DELEGATION (both tables) ─────────────────── */
 function handleTableClick(e) {
     var btn = e.target.closest('[data-action]');

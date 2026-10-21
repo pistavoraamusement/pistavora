@@ -25,6 +25,8 @@ class InventoryController extends Controller
                 'products.product_id',
                 'products.product_name',
                 'products.stock',
+                'products.beginning_stock',
+                'products.actual_count',
                 'products.price',
                 'products.low_stock_threshold',
                 'products.status',
@@ -43,7 +45,17 @@ class InventoryController extends Controller
         $categoriesByZone = $categories->groupBy('zone');
         $zones            = $categories->pluck('zone')->unique()->values();
 
-        return view('inventory.index', compact('products', 'categoriesByZone', 'zones'));
+        // SOLD: total na nabenta ngayong period (hindi pa na-cut-off, hindi voided)
+        $sold = DB::table('transaction_items as ti')
+            ->join('sales_transactions as t', 't.transaction_id', '=', 'ti.transaction_id')
+            ->whereNull('t.cutoff_id')
+            ->where('t.transaction_status', '!=', 'Voided')
+            ->whereNotNull('ti.product_id')
+            ->groupBy('ti.product_id')
+            ->select('ti.product_id', DB::raw('SUM(ti.quantity) as sold'))
+            ->pluck('sold', 'product_id');
+
+        return view('inventory.index', compact('products', 'categoriesByZone', 'zones', 'sold'));
     }
 
     // ─── ADD CATEGORY (dynamic — para di na kailangan i-edit ang Blade) ───
@@ -245,12 +257,13 @@ class InventoryController extends Controller
             $stock = $category->is_stock_tracked ? intval($rowData['stock'] ?? 0) : 0;
 
             DB::table('products')->insert([
-                'product_name'  => $name,
-                'category_id'   => $category->category_id,
-                'category_name' => $category->category_name, // backup/legacy column
-                'stock'         => $stock,
-                'price'         => floatval($rowData['price'] ?? 0),
-                'status'        => 'active',
+                'product_name'    => $name,
+                'category_id'     => $category->category_id,
+                'category_name'   => $category->category_name, // backup/legacy column
+                'stock'           => $stock,
+                'beginning_stock' => $stock, // simula ng period = initial stock
+                'price'           => floatval($rowData['price'] ?? 0),
+                'status'          => 'active',
             ]);
 
             $imported++;
@@ -356,12 +369,13 @@ class InventoryController extends Controller
         $price = floatval($request->price);
 
         $id = DB::table('products')->insertGetId([
-            'product_name'  => $request->name,
-            'category_id'   => $category->category_id,
-            'category_name' => $category->category_name, // legacy/backup, laging naka-sync
-            'stock'         => $stock,
-            'price'         => $price,
-            'status'        => 'active',
+            'product_name'    => $request->name,
+            'category_id'     => $category->category_id,
+            'category_name'   => $category->category_name, // legacy/backup, laging naka-sync
+            'stock'           => $stock,
+            'beginning_stock' => $stock, // bagong product: initial stock = beginning
+            'price'           => $price,
+            'status'          => 'active',
         ]);
 
         // LOG: bagong product
@@ -427,6 +441,15 @@ class InventoryController extends Controller
             'price'         => $newPrice,
             'stock'         => $newStock,
         ];
+
+        // Kapag manual na binago ang stock sa edit, sabay ding gumalaw ang
+        // Beginning (same difference) para tama pa rin ang Beginning − Sold = Stock.
+        if ($old && $category->is_stock_tracked) {
+            $delta = $newStock - (int) $old->stock;
+            if ($delta !== 0) {
+                $data['beginning_stock'] = (int) ($old->beginning_stock ?? $old->stock) + $delta;
+            }
+        }
 
         DB::table('products')->where('product_id', $request->id)->update($data);
 
@@ -561,7 +584,12 @@ class InventoryController extends Controller
         $productName = $before->product_name ?? 'Product';
         $oldStock = intval($before->stock ?? 0);
 
-        DB::table('products')->where('product_id', $request->id)->increment('stock', $qty);
+        // Ang restock ay idinadagdag sa stock AT sa beginning, para
+        // tama pa rin ang Beginning − Sold = Stock.
+        DB::table('products')->where('product_id', $request->id)->update([
+            'stock'           => DB::raw('stock + ' . $qty),
+            'beginning_stock' => DB::raw('COALESCE(beginning_stock, stock) + ' . $qty),
+        ]);
 
         $newStock = DB::table('products')->where('product_id', $request->id)->value('stock');
 
@@ -589,6 +617,51 @@ class InventoryController extends Controller
             'status'    => 'success',
             'message'   => "Stock updated! Added {$qty} units.",
             'new_stock' => $newStock
+        ]);
+    }
+
+    // ─── SAVE PHYSICAL COUNT ──────────────────────────
+    // Actual Count = totoong bilang na tinype ng staff.
+    // Variance = Actual − System Stock (negative = Short, positive = Over).
+    public function saveCount(Request $request)
+    {
+        if (!session()->has('user_id')) {
+            return response()->json(['status' => 'error', 'message' => 'Not authenticated.'], 401);
+        }
+
+        $request->validate([
+            'id'           => 'required|integer',
+            'actual_count' => 'required|integer|min:0',
+        ]);
+
+        $p = DB::table('products')->where('product_id', $request->id)->first();
+        if (!$p) {
+            return response()->json(['status' => 'error', 'message' => 'Product not found.']);
+        }
+
+        $actual   = (int) $request->actual_count;
+        $variance = $actual - (int) $p->stock;
+
+        DB::table('products')->where('product_id', $request->id)->update([
+            'actual_count' => $actual,
+            'counted_at'   => now(),
+        ]);
+
+        // LOG: physical count (warning kapag may short/over)
+        $this->audit(
+            'stock_counted',
+            "Physical count for #{$p->product_id} {$p->product_name}: "
+                . ($variance === 0 ? 'balanced' : ($variance < 0 ? 'SHORT ' : 'OVER ') . abs($variance)),
+            ['stock' => (int) $p->stock],
+            ['actual_count' => $actual],
+            $variance === 0 ? 'info' : 'warning',
+            ['variance' => $variance]
+        );
+
+        return response()->json([
+            'status'   => 'success',
+            'variance' => $variance,
+            'label'    => $variance === 0 ? 'Balanced' : ($variance < 0 ? 'Short' : 'Over'),
         ]);
     }
 

@@ -35,6 +35,7 @@ const PAYMENT_LABELS = {
 };
 
 const ZONE_ROLLER_FEVER   = 'skataya';
+const ZONE_SNACKBAR       = 'snackbar';
 const ZONE_FIELD_OF_RIDES = 'piyestarides';
 const ZONE_DINO_ADVENTURE = 'dinolakbay';
 
@@ -165,6 +166,15 @@ function switchMode(mode) {
     if (prodGridDino) prodGridDino.style.display = '';
     currentCategory = 'all';
   }
+ else {
+  filtered = phpProducts.filter(p => {
+    const inZone   = (p.zone || '') === ZONE_SNACKBAR; 
+    const inCat    = CATEGORIES_SNACKBAR.includes((p.category || '').toLowerCase());
+    const matchCat = currentCategory === 'all' ? true : p.category === currentCategory;
+    const matchQ   = p.name.toLowerCase().includes(query);
+    return inZone && inCat && matchCat && matchQ;
+  });
+}
 
   renderProducts();
 }
@@ -253,7 +263,7 @@ function renderProducts() {
 
   } else {
     filtered = phpProducts.filter(p => {
-      const inZone   = (p.zone || '') === ZONE_ROLLER_FEVER;
+      const inZone   = (p.zone || '') === ZONE_SNACKBAR;
       const inCat = CATEGORIES_SNACKBAR.includes((p.category || '').toLowerCase());
       const matchCat = currentCategory === 'all' ? true : p.category === currentCategory;
       const matchQ   = p.name.toLowerCase().includes(query);

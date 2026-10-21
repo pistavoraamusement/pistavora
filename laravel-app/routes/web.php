@@ -178,6 +178,7 @@ Route::middleware(['auth.session', 'role:cashier,tl,manager,admin'])->group(func
     // Inventory: VIEW ONLY page, open to cashiers.
     // All add/edit/delete/restock/import/export actions are in the LEADS group below.
     Route::get('/inventory', [InventoryController::class, 'index']);
+    Route::post('/inventory/count', [InventoryController::class, 'saveCount']);
 
     // POS
     Route::get('/pos', [PosController::class, 'index']);

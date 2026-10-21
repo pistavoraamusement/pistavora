@@ -428,7 +428,7 @@
 
             <div class="mode-navbar">
                 <button class="mode-tab active" data-mode="skates" onclick="switchMode('skates')">
-                    <i class="ti ti-roller-skating"></i> Skates
+                    <i class="ti ti-roller-skating"></i> Skataya
                 </button>
                 <button class="mode-tab" data-mode="snackbar" onclick="switchMode('snackbar')">
                     <i class="ti ti-tools-kitchen-2"></i> Snackbar

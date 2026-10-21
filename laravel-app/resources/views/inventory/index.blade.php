@@ -72,7 +72,7 @@
   .report-title .title-icon{color:var(--pink-deep);font-size:.95rem;}
   .count-pill{display:inline-flex;align-items:center;justify-content:center;min-width:26px;padding:2px 9px;border-radius:999px;background:var(--pink-light);color:var(--pink-dark);font-family:'Inter',sans-serif;font-size:.72rem;font-weight:700;}
   .report-hint{margin-left:auto;font-family:'Inter',sans-serif;font-size:.74rem;font-weight:500;color:var(--muted);}
-  .table-wrapper{overflow-y:auto;max-height:470px;border:1px solid var(--line);border-radius:12px;}
+  .table-wrapper{overflow:auto;max-height:470px;border:1px solid var(--line);border-radius:12px;background:#fff;}
   .empty-state{display:none;text-align:center;padding:26px 12px;color:var(--muted);font-size:.84rem;}
 
   .pagination-bar{display:flex;align-items:center;justify-content:space-between;padding-top:14px;gap:10px;flex-wrap:wrap;}
@@ -84,21 +84,85 @@
   .page-btn:disabled{opacity:.4;cursor:not-allowed;}
   .page-ellipsis{padding:0 4px;color:var(--muted);font-size:.8rem;}
 
-  .report-table{width:100%;border-collapse:collapse;}
+  /* ── DATA TABLES (shared by Stock Items + Tickets) ───────── */
+  .report-table{width:100%;border-collapse:separate;border-spacing:0;font-family:'Inter',sans-serif;}
+  #stockTable{min-width:1020px;}
+  #ticketTable{min-width:520px;}
+
+  /* header: soft tint + dark text, readable and not heavy */
   .report-table thead{position:sticky;top:0;z-index:5;}
-  .report-table thead th{background:var(--ink);color:#fff;padding:12px 14px;text-align:left;font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.03em;border-bottom:none;}
-  .report-table td{padding:12px 14px;border-bottom:1px solid var(--line);font-size:.87rem;color:var(--ink-soft);}
-  .report-table tr:hover{background:var(--pink-pale);}
+  .report-table thead th{
+    background:var(--pink-pale,#FAF5FB);color:var(--ink-soft);
+    padding:12px 14px;text-align:left;vertical-align:middle;
+    font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+    border-bottom:2px solid var(--pink-light);white-space:nowrap;
+  }
+
+  /* body cells: one font-size, one vertical rhythm */
+  .report-table td{
+    padding:11px 14px;vertical-align:middle;text-align:left;
+    border-bottom:1px solid var(--line);
+    font-size:.85rem;line-height:1.35;color:var(--ink-soft);
+  }
+  .report-table tbody tr:last-child td{border-bottom:none;}
+  .report-table tbody tr:nth-child(even){background:rgba(26,21,35,.018);}
+  .report-table tbody tr:hover{background:var(--pink-pale);}
   .report-table tr.row-highlight{background:var(--pink-light)!important;animation:pulseHighlight 1.2s ease;}
   @keyframes pulseHighlight{0%,100%{background:var(--pink-light);}50%{background:var(--pink);}}
-  .zone-tag{display:inline-block;font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--pink-light);color:var(--pink-dark);margin-left:6px;}
-  .status-badge{padding:5px 12px;border-radius:999px;color:#fff;font-size:.72rem;font-weight:700;}
-  .status-good{background:var(--green);}
-  .status-low{background:#ef4444;}
+
+  /* column 1 = product / ticket name */
+  .report-table tbody td:first-child{font-weight:600;color:var(--ink);font-size:.88rem;}
+
+  /* column 2 = category (+ zone tag) */
+  .report-table tbody td:nth-child(2){white-space:nowrap;color:var(--ink-soft);}
+
+  /* STOCK TABLE alignment: 3-7 numeric centered · 8 price right · 9 status centered · 10 actions centered */
+  #stockTable th:nth-child(n+3):nth-child(-n+7),
+  #stockTable td:nth-child(n+3):nth-child(-n+7){text-align:center;}
+  #stockTable th:nth-child(8),  #stockTable td:nth-child(8){text-align:right;}
+  #stockTable th:nth-child(9),  #stockTable td:nth-child(9){text-align:center;}
+  #stockTable th:nth-child(10), #stockTable td:nth-child(10){text-align:center;}
+
+  /* TICKET TABLE alignment: 3 price right · 4 actions centered */
+  #ticketTable th:nth-child(3), #ticketTable td:nth-child(3){text-align:right;}
+  #ticketTable th:nth-child(4), #ticketTable td:nth-child(4){text-align:center;}
+
+  /* the header of "Short / Over" etc. should not wrap awkwardly */
+  #stockTable th:nth-child(7){min-width:110px;}
+  #stockTable th:nth-child(6){min-width:96px;}
+
+  .zone-tag{display:inline-block;font-size:.66rem;font-weight:700;line-height:1;padding:4px 8px;border-radius:999px;background:var(--pink-light);color:var(--pink-dark);margin-left:6px;vertical-align:middle;}
+
+  /* numbers */
+  .cell-num{font-variant-numeric:tabular-nums;font-weight:500;color:var(--ink);}
+  .cell-stock{font-weight:700;}
+  .cell-sold{color:var(--muted);}
+  .cell-beginning{color:var(--muted);}
+  .cell-price{font-variant-numeric:tabular-nums;font-weight:600;color:var(--ink);white-space:nowrap;}
+
+  /* status badge: soft tint + dark text + dot (better contrast than white-on-color) */
+  .status-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;font-size:.7rem;font-weight:700;line-height:1;white-space:nowrap;}
+  .status-badge::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;}
+  .status-good{background:#DCFCE7;color:#166534;}
+  .status-low{background:#FEE2E2;color:#B91C1C;}
+
+  /* actual count input */
+  .count-input{width:76px;height:34px;padding:0 8px;border:1px solid var(--line-strong);border-radius:8px;font-size:.84rem;font-weight:600;font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;color:var(--ink);background:#fff;text-align:center;transition:border-color .15s, box-shadow .15s;}
+  .count-input::placeholder{color:var(--muted);font-weight:400;}
+  .count-input:hover:not([readonly]){border-color:var(--pink);}
+  .count-input:focus{outline:none;border-color:var(--pink);box-shadow:0 0 0 3px var(--pink-light);}
+  .count-input[readonly]{background:var(--bg);color:var(--ink-soft);cursor:not-allowed;}
+
+  /* variance badges */
+  .var-badge{display:inline-block;padding:5px 11px;border-radius:999px;font-size:.7rem;font-weight:700;line-height:1;white-space:nowrap;}
+  .var-ok{background:#D9F5EF;color:#0F766E;}
+  .var-short{background:#FEE2E2;color:#B91C1C;}
+  .var-over{background:#FEF3C7;color:#B45309;}
+  .var-none{color:var(--muted);font-size:.85rem;}
 
   /* ── ROW ACTIONS ─────────────────────────────────────────── */
-  .row-actions{display:flex;align-items:center;gap:6px;}
-  .action-btn{width:32px;height:32px;padding:0;margin:0;border:1px solid transparent;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:.8rem;transition:background .15s, color .15s, transform .12s, box-shadow .15s;}
+  .row-actions{display:flex;align-items:center;justify-content:center;gap:6px;}
+  .action-btn{width:30px;height:30px;padding:0;margin:0;border:1px solid transparent;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:.78rem;transition:background .15s, color .15s, transform .12s, box-shadow .15s;}
   .action-btn i{pointer-events:none;}
   .action-btn:hover{transform:translateY(-1px);}
   .action-btn:active{transform:scale(.94);}
@@ -308,7 +372,11 @@
           <tr>
             <th>Product</th>
             <th>Category</th>
+            <th>Beginning</th>
+            <th>Sold</th>
             <th>Stock</th>
+            <th>Actual Count</th>
+            <th>Short / Over</th>
             <th>Price</th>
             <th>Status</th>
             @if($canManage)
@@ -324,6 +392,12 @@
               $isLow      = $stock <= $threshold;
               $priceRaw   = number_format(floatval($p->price ?? 0), 2, '.', '');
               $priceShown = number_format(floatval($p->price ?? 0), 2);
+
+              // Beginning / Sold / Actual Count / Variance
+              $beginning  = $p->beginning_stock !== null ? intval($p->beginning_stock) : null;
+              $soldQty    = intval($sold[$p->product_id] ?? 0);
+              $actual     = $p->actual_count !== null ? intval($p->actual_count) : null;
+              $variance   = $actual !== null ? $actual - $stock : null;
             @endphp
             <tr data-id="{{ $p->product_id }}"
                 data-name="{{ $p->product_name }}"
@@ -333,10 +407,33 @@
                 data-tracked="1"
                 data-stock="{{ $stock }}"
                 data-price="{{ $priceRaw }}"
-                data-threshold="{{ $threshold }}">
+                data-threshold="{{ $threshold }}"
+                data-beginning="{{ $beginning }}"
+                data-sold="{{ $soldQty }}"
+                data-actual="{{ $actual }}">
               <td>{{ $p->product_name }}</td>
               <td>{{ $p->category_name }} <span class="zone-tag">{{ $p->zone }}</span></td>
-              <td class="cell-stock">{{ $stock }}</td>
+              <td class="cell-num cell-beginning">{{ $beginning ?? '—' }}</td>
+              <td class="cell-num cell-sold">{{ $soldQty }}</td>
+              <td class="cell-num cell-stock">{{ $stock }}</td>
+              <td class="cell-num cell-actual">
+                <input type="number" min="0" class="count-input"
+                       data-id="{{ $p->product_id }}"
+                       value="{{ $actual }}"
+                       placeholder="—"
+                       @unless($canManage) readonly @endunless>
+              </td>
+              <td class="cell-num cell-variance" id="var-{{ $p->product_id }}">
+                @if($variance === null)
+                  <span class="var-none">—</span>
+                @elseif($variance === 0)
+                  <span class="var-badge var-ok">Balanced</span>
+                @elseif($variance < 0)
+                  <span class="var-badge var-short">Short {{ abs($variance) }}</span>
+                @else
+                  <span class="var-badge var-over">Over {{ $variance }}</span>
+                @endif
+              </td>
               <td class="cell-price">₱{{ $priceShown }}</td>
               <td class="cell-status">
                 <span class="status-badge {{ $isLow ? 'status-low' : 'status-good' }}">{{ $isLow ? 'Low Stock' : 'In Stock' }}</span>
@@ -607,6 +704,7 @@
 <script>
   // Passed to js/inventory.js so rows created in JS match the server-rendered ones
   window.INVENTORY_CAN_MANAGE = @json($canManage);
+  window.INVENTORY_CSRF = @json(csrf_token());
 </script>
 
 <script>
@@ -643,6 +741,50 @@
     document.addEventListener('click',     hide);
     window.addEventListener('scroll', hide, true);
   })();
+</script>
+
+<script>
+  // ─── SAVE PHYSICAL COUNT ───
+  // Event delegation: works for rows rendered by Blade and rows added by JS.
+  document.addEventListener('change', async (e) => {
+    const inp = e.target.closest('.count-input');
+    if (!inp || inp.readOnly || inp.value === '') return;
+
+    const cell = document.getElementById('var-' + inp.dataset.id);
+    const csrf = (document.querySelector('meta[name="csrf-token"]') || {}).content || window.INVENTORY_CSRF;
+
+    const badge = (cls, text) => `<span class="var-badge ${cls}">${text}</span>`;
+
+    try {
+      const res = await fetch('/inventory/count', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': csrf
+        },
+        body: JSON.stringify({ id: inp.dataset.id, actual_count: inp.value })
+      });
+      const d = await res.json();
+
+      if (d.status !== 'success') {
+        cell.innerHTML = `<span class="var-none">${d.message || 'Error'}</span>`;
+        return;
+      }
+
+      const v = d.variance;
+      const tr = inp.closest('tr');
+      if (tr) tr.dataset.actual = inp.value;
+
+      cell.innerHTML = v === 0
+        ? badge('var-ok', 'Balanced')
+        : v < 0
+          ? badge('var-short', 'Short ' + Math.abs(v))
+          : badge('var-over', 'Over ' + v);
+    } catch (err) {
+      cell.innerHTML = '<span class="var-none">Failed to save</span>';
+    }
+  });
 </script>
 <script src="{{ asset('js/inventory.js') }}"></script>
 @endpush
