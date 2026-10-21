@@ -42,6 +42,39 @@ use App\Http\Controllers\PromoAiController;
 */
 $secure = config('security.secure_prefix', 'admin');
 
+// Obscured zone page paths (see config/security.php -> zone_paths)
+$zonePaths = array_map(
+    fn ($p) => trim($p, '/'),
+    config('security.zone_paths', [
+        'fieldOfRides'  => 'fieldOfRides',
+        'rollerFever'   => 'RollerFever',
+        'dinoAdventure' => 'DinoAdventure',
+    ])
+);
+
+// Obscured sidebar page paths (see config/security.php -> page_paths)
+$pagePaths = array_map(
+    fn ($p) => trim($p, '/'),
+    config('security.page_paths', [
+        'snackbar'        => 'Snackbar',
+        'inventory'       => 'inventory',
+        'pos'             => 'pos',
+        'analytics'       => 'analytics',
+        'ml_forecast'     => 'ml-forecast',
+        'customer'        => 'customer',
+        'reservations'    => 'reservations',
+        'attendance'      => 'attendance',
+        'salary'          => 'attendance/salary',
+        'payroll_history' => 'attendance/payroll-history',
+        'payslip'         => 'attendance/payslip',
+        'employees'       => 'employees',
+        'notifications'   => 'notifications',
+    ])
+);
+
+// Obscured customer app prefix (see config/security.php -> user_prefix)
+$userPrefix = trim(config('security.user_prefix', 'app'), '/');
+
 /*
 |--------------------------------------------------------------------------
 | ROLES
@@ -137,15 +170,16 @@ Route::resource('chatmessaging', ChatMessagingController::class);
 | LOGGED IN (any role, including customers)
 |--------------------------------------------------------------------------
 */
-Route::middleware('auth.session')->group(function () use ($secure) {
+Route::middleware('auth.session')->group(function () use ($secure, $userPrefix) {
 
     // My Account (profile photo, name, password). Under the secure prefix.
     Route::get("/{$secure}/my-account", [MyAccountController::class, 'index'])->name('my-account.index');
     Route::put("/{$secure}/my-account", [MyAccountController::class, 'updateInfo'])->name('my-account.update');
     Route::put("/{$secure}/my-account/password", [MyAccountController::class, 'updatePassword'])->name('my-account.password');
 
-    // User app (customer-facing): Account, Waiver, Booking, My Bookings
-    Route::prefix('app')->name('user.')->group(function () {
+    // User app (customer-facing): Account, Waiver, Booking, My Bookings.
+    // Obscured prefix (replaces /app). Route names stay user.* so route() keeps working.
+    Route::prefix($userPrefix)->name('user.')->group(function () {
         Route::get('/dashboard', [UserDashboardController::class, 'index'])->name('dashboard');
         Route::post('/account', [UserDashboardController::class, 'update'])->name('account.update');
         Route::post('/account/two-factor', [UserDashboardController::class, 'toggleTwoFactor'])->name('account.two-factor.toggle');
@@ -192,15 +226,15 @@ Route::middleware('auth.session')->group(function () use ($secure) {
 // be open to every logged-in user, not just staff. Otherwise customers get a 403.
 Route::get('/home', [HomeController::class, 'index'])->middleware('auth.session');
 
-Route::middleware(['auth.session', 'role:cashier,tl,manager,admin'])->group(function () {
+Route::middleware(['auth.session', 'role:cashier,tl,manager,admin'])->group(function () use ($pagePaths) {
 
-    // Inventory: VIEW ONLY page, open to cashiers.
+    // Inventory: VIEW ONLY page, open to cashiers (obscured URL).
     // All add/edit/delete/restock/import/export actions are in the LEADS group below.
-    Route::get('/inventory', [InventoryController::class, 'index']);
+    Route::get("/{$pagePaths['inventory']}", [InventoryController::class, 'index'])->name('inventory.index');
     Route::post('/inventory/count', [InventoryController::class, 'saveCount']);
 
-    // POS
-    Route::get('/pos', [PosController::class, 'index']);
+    // POS (page URL obscured; the /pos/... AJAX endpoints below keep their URLs)
+    Route::get("/{$pagePaths['pos']}", [PosController::class, 'index'])->name('pos.index');
     Route::get('/pos/get_cashflow', [PosController::class, 'getCashflow']);
     Route::get('/pos/open-drawer', [PosController::class, 'openDrawer']);
     Route::get('/pos/get_transaction', [PosController::class, 'getTransaction']);
@@ -221,7 +255,7 @@ Route::middleware(['auth.session', 'role:cashier,tl,manager,admin'])->group(func
     //  It now exists only in the LEADS group below.)
 
     // Notifications (fixed URLs must come before {notification})
-    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get("/{$pagePaths['notifications']}", [NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notifications/poll', [NotificationController::class, 'poll'])->name('notifications.poll');
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('notifications.mark-all-read');
     Route::patch('/notifications/bulk-read', [NotificationController::class, 'bulkMarkRead'])->name('notifications.bulk-read');
@@ -236,7 +270,7 @@ Route::middleware(['auth.session', 'role:cashier,tl,manager,admin'])->group(func
 | (includes tl because /ml-forecast is their landing page after login)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth.session', 'role:tl,manager,admin'])->group(function () {
+Route::middleware(['auth.session', 'role:tl,manager,admin'])->group(function () use ($zonePaths, $pagePaths) {
 
     // Inventory: editing actions (NOT allowed for cashiers)
     Route::post('/inventory/add', [InventoryController::class, 'store']);
@@ -248,7 +282,7 @@ Route::middleware(['auth.session', 'role:tl,manager,admin'])->group(function () 
     Route::post('/inventory/add-category', [InventoryController::class, 'storeCategory'])->name('inventory.addCategory');
 
     // Reservations
-    Route::get('/reservations', [ReservationController::class, 'index'])->name('reservations.index');
+    Route::get("/{$pagePaths['reservations']}", [ReservationController::class, 'index'])->name('reservations.index');
     Route::get('/reservations/{reservation}', [ReservationController::class, 'show'])->name('reservations.show');
     Route::post('/reservations', [ReservationController::class, 'store'])->name('reservations.store');
     Route::put('/reservations/{reservation}', [ReservationController::class, 'update'])->name('reservations.update');
@@ -258,7 +292,7 @@ Route::middleware(['auth.session', 'role:tl,manager,admin'])->group(function () 
     Route::delete('/reservations/{reservation}', [ReservationController::class, 'destroy'])->name('reservations.destroy');
 
     // Customers / Visitors
-    Route::get('/customer', [VisitorSummaryController::class, 'index'])->name('visitor-summary');
+    Route::get("/{$pagePaths['customer']}", [VisitorSummaryController::class, 'index'])->name('visitor-summary');
     Route::get('/analytics/live-count', [VisitorSummaryController::class, 'liveCount'])->name('analytics.live-count');
 
     // AI Promo Generator (inside auth + role group; leads only)
@@ -266,7 +300,7 @@ Route::middleware(['auth.session', 'role:tl,manager,admin'])->group(function () 
         ->middleware('throttle:20,1')->name('ai.promo-suggest');
 
     // Analytics / ML Forecast
-    Route::get('/analytics', [AnalyticsController::class, 'index']);
+    Route::get("/{$pagePaths['analytics']}", [AnalyticsController::class, 'index'])->name('analytics.index');
 
     Route::get('/api/ml/summary', [MlForecastController::class, 'summary']);
     Route::get('/api/ml/top_products', [MlForecastController::class, 'topProducts']);
@@ -278,17 +312,17 @@ Route::middleware(['auth.session', 'role:tl,manager,admin'])->group(function () 
     Route::get('/api/ml/voucher_summary', [MlForecastController::class, 'voucherSummary']);
     Route::get('/api/zone-forecast/{zone}/report', [ZoneForecastController::class, 'downloadReport']);
     Route::get('/api/zone-forecast/{zone}/voucher_summary', [ZoneForecastController::class, 'voucherSummary']);
-    Route::get('/ml-forecast', [MlForecastController::class, 'index'])->name('ml.forecast');
+    Route::get("/{$pagePaths['ml_forecast']}", [MlForecastController::class, 'index'])->name('ml.forecast');
     Route::get('/api/ml/zone-summary', [MlForecastController::class, 'zoneSummary']);
 
-    // Zone Forecast pages
-    // URLs stay the same so sidebar links keep working. The 'zone' value MUST match
-    // categories.zone exactly (renamed by the zone-rename migration).
-    Route::get('/fieldOfRides', [ZoneForecastController::class, 'index'])
+    // Zone Forecast pages (obscured URLs from config/security.php -> zone_paths).
+    // Route NAMES are unchanged, so use route('zone.dinoAdventure') etc. in Blade.
+    // The 'zone' value MUST match categories.zone exactly (renamed by the zone-rename migration).
+    Route::get("/{$zonePaths['fieldOfRides']}", [ZoneForecastController::class, 'index'])
         ->defaults('zone', 'Piyestarides')->name('zone.fieldOfRides');
-    Route::get('/RollerFever', [ZoneForecastController::class, 'index'])
+    Route::get("/{$zonePaths['rollerFever']}", [ZoneForecastController::class, 'index'])
         ->defaults('zone', 'Skataya')->name('zone.rollerFever');
-    Route::get('/DinoAdventure', [ZoneForecastController::class, 'index'])
+    Route::get("/{$zonePaths['dinoAdventure']}", [ZoneForecastController::class, 'index'])
         ->defaults('zone', 'Dinolakbay')->name('zone.dinoAdventure');
 });
 
@@ -298,22 +332,24 @@ Route::middleware(['auth.session', 'role:tl,manager,admin'])->group(function () 
 | Attendance, Payroll, Employees, Reports, CMS (including pricing)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth.session', 'role:manager,admin'])->group(function () use ($secure) {
+Route::middleware(['auth.session', 'role:manager,admin'])->group(function () use ($secure, $pagePaths) {
 
     // Reports (under the secure prefix, now named so Blade can use route())
     Route::get("/{$secure}/reports/present", [AnalyticsController::class, 'reportPresent'])->name('reports.present');
     Route::get("/{$secure}/reports/historical", [AnalyticsController::class, 'reportHistorical'])->name('reports.historical');
     Route::get("/{$secure}/reports/bir", [AnalyticsController::class, 'reportBir'])->name('reports.bir');
 
-    Route::get('/Snackbar', fn () => app(ZoneForecastController::class)->index('Snackbar'));
+    Route::get("/{$pagePaths['snackbar']}", fn () => app(ZoneForecastController::class)->index('Snackbar'))
+        ->name('zone.snackbar');
 
-    // Attendance / Payroll
-    Route::get('/attendance', [AttendanceController::class, 'index'])->name('attendance');
+    // Attendance / Payroll (page URLs obscured; AJAX/form endpoints below keep their URLs,
+    // and the public QR check-in /attendance/checkin is NOT changed)
+    Route::get("/{$pagePaths['attendance']}", [AttendanceController::class, 'index'])->name('attendance');
     Route::get('/attendance/live', [AttendanceController::class, 'liveSignature'])->name('attendance.live');
-    Route::get('/attendance/salary', [AttendanceController::class, 'salary'])->name('salary');
-    Route::get('/attendance/payroll-history', [AttendanceController::class, 'payrollHistory'])->name('payroll-history');
-    Route::get('/attendance/payslip', [AttendanceController::class, 'payslip'])->name('payslip');
-    Route::get('/attendance/payslip/{id}', [AttendanceController::class, 'payslip'])->name('payslip.show');
+    Route::get("/{$pagePaths['salary']}", [AttendanceController::class, 'salary'])->name('salary');
+    Route::get("/{$pagePaths['payroll_history']}", [AttendanceController::class, 'payrollHistory'])->name('payroll-history');
+    Route::get("/{$pagePaths['payslip']}", [AttendanceController::class, 'payslip'])->name('payslip');
+    Route::get("/{$pagePaths['payslip']}/{id}", [AttendanceController::class, 'payslip'])->name('payslip.show');
     Route::post('/attendance/salary/rates', [AttendanceController::class, 'updateRates'])->name('salary.rates');
     Route::post('/attendance/salary/store', [AttendanceController::class, 'storePayroll'])->name('salary.store');
     Route::post('/attendance/store', [AttendanceController::class, 'storeAttendance'])->name('attendance.store');
@@ -323,7 +359,7 @@ Route::middleware(['auth.session', 'role:manager,admin'])->group(function () use
     Route::post('/attendance/qr/regenerate', [AttendanceController::class, 'regenerateQr'])->name('attendance.qr.regenerate');
 
     // Employees
-    Route::get('/employees', [EmployeeController::class, 'index'])->name('employees.index');
+    Route::get("/{$pagePaths['employees']}", [EmployeeController::class, 'index'])->name('employees.index');
     Route::post('/employees', [EmployeeController::class, 'store'])->name('employees.store');
     Route::post('/employees/import', [EmployeeController::class, 'import'])->name('employees.import');
     Route::put('/employees/{employee}', [EmployeeController::class, 'update'])->name('employees.update');
