@@ -5,15 +5,10 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\User;
-use Illuminate\Support\Facades\Storage;
+use App\Support\ImageData;
 
 class DashboardController extends Controller
 {
-    /**
-     * Show the customer's Account page.
-     *
-     * GET /app/dashboard
-     */
     public function index()
     {
         if (!session()->has('user_id')) {
@@ -22,10 +17,6 @@ class DashboardController extends Controller
 
         $user = User::find(session('user_id'));
 
-        // Same definition of "upcoming" used on the My Bookings stats
-        // (BookingController@index): status = confirmed.
-        // NOTE: User's primary key is "user_id", not "id" — using
-        // $user->id here was a bug (wrong column) introduced earlier.
         $upcomingCount = Booking::where('user_id', $user->user_id)
             ->where('status', 'confirmed')
             ->count();
@@ -33,11 +24,6 @@ class DashboardController extends Controller
         return view('user.dashboard', compact('user', 'upcomingCount'));
     }
 
-    /**
-     * Update the customer's name, avatar color theme, and/or avatar photo.
-     *
-     * POST /app/account
-     */
     public function update(\Illuminate\Http\Request $request)
     {
         if (!session()->has('user_id')) {
@@ -63,18 +49,12 @@ class DashboardController extends Controller
         }
 
         if ($request->hasFile('avatar_photo')) {
-            if ($user->avatar_path) {
-                Storage::disk('public')->delete($user->avatar_path);
-            }
-
-            $path = $request->file('avatar_photo')->store('avatars', 'public');
-            $user->avatar_path = $path;
+            $user->avatar_path = ImageData::toDataUri($request->file('avatar_photo'));
         }
 
         $saved = $user->save();
         $user->refresh();
 
-        // keep the session's cached fullname in sync with the name field
         session(['fullname' => $user->name]);
 
         if (!$saved) {
@@ -82,17 +62,10 @@ class DashboardController extends Controller
                 ->with('error', 'Could not save your changes. Please try again.');
         }
 
-        // Echoes back what's actually in the DB right now, so the banner
-        // itself proves whether the save really went through.
         return redirect()->route('user.dashboard')
             ->with('success', 'Profile updated: name is now "' . $user->name . '", avatar color is "' . $user->avatar_theme . '".');
     }
 
-    /**
-     * Toggle email-based two-factor authentication on/off for the account.
-     *
-     * POST /app/account/two-factor
-     */
     public function toggleTwoFactor(\Illuminate\Http\Request $request)
     {
         if (!session()->has('user_id')) {
@@ -106,8 +79,6 @@ class DashboardController extends Controller
         }
 
         $user->two_factor_enabled = !$user->two_factor_enabled;
-
-        // Clear any stale pending code when toggling.
         $user->two_factor_code = null;
         $user->two_factor_expires_at = null;
         $user->save();
@@ -118,11 +89,6 @@ class DashboardController extends Controller
             ->with('success', "Two-Factor Authentication has been {$status}.");
     }
 
-    /**
-     * Step 1: verify current password + validate new one, then email a code.
-     *
-     * POST /app/account/password
-     */
     public function requestPasswordChange(\Illuminate\Http\Request $request)
     {
         if (!session()->has('user_id')) {
@@ -166,11 +132,6 @@ class DashboardController extends Controller
             ->with('success', 'We emailed you a code to confirm your new password.');
     }
 
-    /**
-     * Step 2: verify the emailed code, then actually apply the new password.
-     *
-     * POST /app/account/password/confirm
-     */
     public function confirmPasswordChange(\Illuminate\Http\Request $request)
     {
         if (!session()->has('user_id')) {
@@ -206,11 +167,6 @@ class DashboardController extends Controller
         return redirect()->route('user.dashboard')->with('success', 'Your password has been updated.');
     }
 
-    /**
-     * Cancel a pending password change.
-     *
-     * POST /app/account/password/cancel
-     */
     public function cancelPasswordChange()
     {
         if (!session()->has('user_id')) {
@@ -228,11 +184,6 @@ class DashboardController extends Controller
         return redirect()->route('user.dashboard')->with('success', 'Password change cancelled.');
     }
 
-    /**
-     * Resend the password-change confirmation code.
-     *
-     * POST /app/account/password/resend
-     */
     public function resendPasswordChangeCode()
     {
         if (!session()->has('user_id')) {

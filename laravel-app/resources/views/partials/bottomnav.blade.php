@@ -24,7 +24,14 @@
         'blue' => ['#5B8CFF', '#2E52C7'],
     ];
     [$navA, $navB] = $navAvatars[$navUser->avatar_theme ?? 'rose'] ?? $navAvatars['rose'];
-    $navPhoto = ! empty($navUser->avatar_path) ? asset('storage/' . $navUser->avatar_path) : null;
+   $navPhoto = null;
+        $navPath  = $navUser->avatar_path ?? null;
+
+        if (!empty($navPath)) {
+            $navPhoto = str_starts_with($navPath, 'data:')
+                ? $navPath
+                : asset('storage/' . ltrim($navPath, '/'));
+        }
 @endphp
 <script>
     /* apply the saved sidebar state before the nav paints (same key as the admin sidebar) */

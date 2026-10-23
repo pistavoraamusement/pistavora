@@ -1,19 +1,17 @@
 <?php
-// Ilagay sa: app/Http/Controllers/Admin/MyAccountController.php
 
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Services\SystemLogger;
+use App\Support\ImageData;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 
 class MyAccountController extends Controller
 {
-    // ─── SYSTEM LOG HELPER (kapareho ng sa AccountController) ───
     private function audit(
         string $eventType,
         string $description,
@@ -40,7 +38,6 @@ class MyAccountController extends Controller
         }
     }
 
-    // Kunin ang kasalukuyang naka-login na user mula sa session
     private function currentUser()
     {
         $id = session('user_id');
@@ -60,7 +57,6 @@ class MyAccountController extends Controller
         return view('admin.my-account', compact('user'));
     }
 
-    // Palit ng profile details at profile photo
     public function updateInfo(Request $request)
     {
         $user = $this->currentUser();
@@ -77,7 +73,6 @@ class MyAccountController extends Controller
 
         $fields = ['fullname', 'username'];
 
-        // Normalize para tama ang paghahambing (null vs '' at date vs datetime)
         $norm = function ($field, $value) {
             return trim((string) ($value ?? ''));
         };
@@ -95,21 +90,13 @@ class MyAccountController extends Controller
             }
         }
 
-        // ── Profile photo ──
+        // ── Profile photo (naka-store na sa database bilang data URI) ──
         $photoChanged = false;
 
         if ($request->hasFile('photo')) {
-            $path = $request->file('photo')->store('profile-photos', 'public');
-
-            if (!empty($user->photo)) {
-                Storage::disk('public')->delete($user->photo);
-            }
-
-            $update['photo'] = $path;
+            $update['photo'] = ImageData::toDataUri($request->file('photo'));
             $photoChanged = true;
         } elseif ($request->boolean('remove_photo') && !empty($user->photo)) {
-            Storage::disk('public')->delete($user->photo);
-
             $update['photo'] = null;
             $photoChanged = true;
         }
@@ -120,15 +107,14 @@ class MyAccountController extends Controller
 
         DB::table('users')->where('user_id', $user->user_id)->update($update);
 
-        // I-sync ang session para mag-update agad sa sidebar footer
         if (array_key_exists('fullname', $update)) {
             session(['fullname' => $update['fullname']]);
         }
-        if ($photoChanged) {
-            session(['photo' => $update['photo']]);
-        }
 
-        // Walang system log para sa pagpapalit ng pangalan/photo (hindi security event)
+        // Bawal i-store ang base64 sa session (masyadong malaki)
+        if ($photoChanged) {
+            session()->forget('photo');
+        }
 
         $msg = ($photoChanged && !$newVals)
             ? 'Your profile picture has been updated.'
@@ -137,7 +123,6 @@ class MyAccountController extends Controller
         return back()->with('info_success', $msg);
     }
 
-    // Palit ng password (kailangan ang kasalukuyang password)
     public function updatePassword(Request $request)
     {
         $user = $this->currentUser();
@@ -151,7 +136,6 @@ class MyAccountController extends Controller
         ]);
 
         if (!Hash::check($request->current_password, $user->password)) {
-            // LOG: maling current password (posibleng may ibang gumagamit ng session)
             $this->audit(
                 'password_change_failed',
                 "Incorrect current password while {$user->username} tried to change their password",
@@ -169,10 +153,8 @@ class MyAccountController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        // Bagong session ID para sa seguridad pagkatapos magpalit
         $request->session()->regenerate();
 
-        // LOG: walang password o hash na nilalagay
         $this->audit(
             'password_changed',
             "{$user->username} changed their own password",

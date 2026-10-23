@@ -81,7 +81,7 @@
         ];
         $currentAvatar = $user->avatar_theme ?? 'rose';
         [$avatarA, $avatarB] = $avatarChoices[$currentAvatar] ?? $avatarChoices['rose'];
-        $hasPhoto = !empty($user->avatar_path);
+        $hasPhoto = !empty($user->avatar_path) && str_starts_with($user->avatar_path, 'data:');
         $avatarVersion = optional($user->updated_at)->timestamp ?? time();
         $isVerified = !empty($user->email_verified_at);
         $isActive = ($user->status ?? 'active') === 'active';
@@ -117,11 +117,11 @@
 
         <div class="ap-hero-row">
             @if ($hasPhoto)
-                <img src="{{ asset('storage/' . $user->avatar_path) }}?v={{ $avatarVersion }}"
-                     alt="Profile photo"
-                     class="ap-hero-avatar"
-                     id="avatarPreviewImg"
-                     style="object-fit:cover;">
+               <img src="{{ $user->avatar_path }}"
+                alt="Profile photo"
+                class="ap-hero-avatar"
+                id="avatarPreviewImg"
+                style="object-fit:cover;">
             @else
                 <div class="ap-hero-avatar" id="avatarPreviewFallback">
                     {{ strtoupper(substr($user->name ?? 'G', 0, 1)) }}

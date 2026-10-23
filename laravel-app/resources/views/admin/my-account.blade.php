@@ -580,7 +580,7 @@
         $status    = strtolower((string) ($user->status ?? 'active'));
         $isActive  = $status === 'active';
 
-        $photoUrl  = !empty($user->photo) ? asset('storage/' . $user->photo) : null;
+        $photoUrl  = (!empty($user->photo) && str_starts_with($user->photo, 'data:')) ? $user->photo : null;
 
         // Original values (used by JS to detect changes)
         $original = [

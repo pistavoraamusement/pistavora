@@ -2,29 +2,26 @@
 
 namespace App\Providers;
 
-use App\Models\Booking;
-use App\Observers\BookingObserver;
+use App\Models\User;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
         //
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
-        Booking::observe(BookingObserver::class);
-          if (config('app.env') === 'production') {
-        URL::forceScheme('https');
-          }
+        // Share the logged-in user with the sidebar and layout partials
+        View::composer(['partials.bottomnav', 'layouts.user'], function ($view) {
+            $navUser = session()->has('user_id')
+                ? User::find(session('user_id'))
+                : null;
+
+            $view->with('navUser', $navUser);
+        });
     }
 }

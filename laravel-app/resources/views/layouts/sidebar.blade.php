@@ -927,6 +927,17 @@
             width: fit-content;
         }
 
+        .sidebar-user .avatar {
+                overflow: hidden;
+            }
+
+            .sidebar-user .avatar img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                display: block;
+            }
+
         .sidebar-logout {
             display: flex;
             align-items: center;
@@ -1907,19 +1918,37 @@
                 })();
             </script>
 
-            <div class="sidebar-footer">
-                <div class="sidebar-user">
-                    <div class="avatar" data-tip="{{ session('fullname') }}">{{ strtoupper(substr(session('fullname', 'U'), 0, 1)) }}</div>
-                    <div class="user-info">
-                        <div class="name">{{ session('fullname') }}</div>
-                        <div class="role">{{ session('role') }}</div>
-                    </div>
-                    <button type="button" class="sidebar-logout" onclick="openLogoutModal()" aria-label="Log out">
-                        <i class="fas fa-sign-out-alt"></i>
-                    </button>
-                </div>
-            </div>
-        </aside>
+             <div class="sidebar-footer">
+    @php
+        $sbPhoto = null;
+        if (is_numeric(session('user_id'))) {
+            $sbPhoto = \Illuminate\Support\Facades\DB::table('users')
+                ->where('user_id', (int) session('user_id'))
+                ->value('photo');
+            if (!$sbPhoto || !str_starts_with($sbPhoto, 'data:')) {
+                $sbPhoto = null;
+            }
+        }
+    @endphp
+
+    <div class="sidebar-user">
+        <div class="avatar" data-tip="{{ session('fullname') }}">
+            @if (!empty($sbPhoto))
+            <img src="{{ $sbPhoto }}" alt="{{ session('fullname') }}">
+        @else
+            {{ strtoupper(substr(session('fullname', 'G'), 0, 1)) }}
+        @endif
+        </div>
+        <div class="user-info">
+            <div class="name">{{ session('fullname') }}</div>
+            <div class="role">{{ session('role') }}</div>
+        </div>
+        <button type="button" class="sidebar-logout" onclick="openLogoutModal()" aria-label="Log out">
+            <i class="fas fa-sign-out-alt"></i>
+        </button>
+    </div>
+</div>
+</aside>
 
         <div class="main-content">
             <div class="content-body">
