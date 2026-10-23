@@ -27,6 +27,7 @@
                 <a href="#attractions">Attractions</a>
                 <a href="#services">Services</a>
                 <a href="#contact">Visit Us</a>
+                <a href="#about" onclick="event.preventDefault(); openAbout();">About Us</a>
             </div>
             <div style="display:flex;gap:10px;">
                 <a href="{{ route('login') }}" class="btn btn-outline btn-sm">Sign In</a>
@@ -115,7 +116,7 @@
                     </ul>
                     <div class="links">
                         <a href="{{ route('login') }}" onclick="event.stopPropagation();">Book now</a>
-                        <button type="button" onclick="event.stopPropagation(); openWpModal('pass-dino');">Full price list</button>
+                        <button type="button" onclick="event.stopPropagation(); openWpModal('pass-dino');">See services</button>
                     </div>
                 </div>
 
@@ -132,14 +133,18 @@
                     </ul>
                     <div class="links">
                         <a href="{{ route('login') }}" onclick="event.stopPropagation();">Book now</a>
-                        <button type="button" onclick="event.stopPropagation(); openWpModal('pass-roller');">Full price list</button>
+                        <button type="button" onclick="event.stopPropagation(); openWpModal('pass-roller');">See services</button>
                     </div>
                 </div>
 
                 <div class="wp-pass" style="--c:#9a4a52;--b:#6b3a40" onclick="openWpModal('pass-fields')">
                     <span class="zone">PiyestaRides</span>
                     <h3>Ride-All-You-Can</h3>
-                    <div class="price">Promo</div>
+                    <div class="price">
+                        <s class="was">₱1,590</s>
+                        <span class="now">₱999</span>
+                        <small>per pass</small>
+                    </div>
                     <ul>
                         <li>Ride-all-you-can packages</li>
                         <li>Discounts on Klook and StarDeals</li>
@@ -148,7 +153,7 @@
                     </ul>
                     <div class="links">
                         <a href="{{ route('login') }}" onclick="event.stopPropagation();">Book now</a>
-                        <button type="button" onclick="event.stopPropagation(); openWpModal('pass-fields');">Per-ride prices</button>
+                        <button type="button" onclick="event.stopPropagation(); openWpModal('pass-fields');">See rides</button>
                     </div>
                 </div>
 
@@ -465,6 +470,7 @@
                     <li><a href="#services">Services</a></li>
                     <li><a href="#how">How it works</a></li>
                     <li><a href="#contact">Visit Us</a></li>
+                    <li><a href="#about" onclick="event.preventDefault(); openAbout();">About Us</a></li>
                 </ul>
             </div>
 
@@ -488,8 +494,61 @@
             </div>
         </div>
 
-        <div class="wp-foot-bar">© {{ date('Y') }} Pistavora. All rights reserved.</div>
+        <div class="wp-foot-bar">© {{ date('Y') }} Pistavora. All rights reserved. For educational purposes only.</div>
     </footer>
+
+    {{-- ============ ABOUT US / DISCLAIMER MODAL ============ --}}
+    <div class="ab-overlay" id="aboutOverlay" role="dialog" aria-modal="true" aria-labelledby="aboutTitle" hidden
+        onclick="if(event.target===this) closeAbout()">
+        <div class="ab-modal">
+            <button type="button" class="ab-x" onclick="closeAbout()" aria-label="Close">&times;</button>
+
+            <div class="ab-head">
+                <span class="ab-tag">About Us</span>
+                <h2 id="aboutTitle">About Us &amp; Disclaimer</h2>
+                <p>Please read this before using the website.</p>
+            </div>
+
+            <div class="ab-body">
+                <div class="ab-alert">
+                    <strong>Educational purposes only.</strong>
+                    This system is a school project and is not a real, operating business.
+                </div>
+
+                <h3>Disclaimer</h3>
+                <ul>
+                    <li>This website and system were made <strong>for educational purposes only</strong> as part of an academic requirement.</li>
+                    <li>Pistavora is a <strong>fictional, inspired amusement center</strong>. It is inspired by real family amusement centers, but it is not the official website or system of any real company.</li>
+                    <li>The brand names, zones, rides, rates, promos, hours, photos, videos, vouchers and payment steps shown here are samples for demonstration. They should not be treated as real offers.</li>
+                    <li>Please do not enter real personal, payment or banking information. Any payment, QR code and voucher shown here is for demonstration only.</li>
+                    <li>Any similarity to real businesses, brands, persons or events is unintentional or used only as inspiration for the project.</li>
+                    <li>We do not claim ownership of third-party names, logos or media that may appear, and they belong to their respective owners.</li>
+                </ul>
+
+                <h3>About this project</h3>
+                <p>
+                    Pistavora is a sample family amusement center with three zones: PiyestaRides, Skataya and DinoLakbay.
+                    The website shows how an amusement center could handle online booking, QR payment, proof of payment
+                    approval and voucher claiming in one system.
+                </p>
+
+                <h3>Work with us</h3>
+                <p>
+                    We are also open to building a system for your business. If you are a client and want a booking,
+                    ticketing, point of sale or business management system made for you, we are willing to accept
+                    your project.
+                </p>
+                <p class="ab-mail">
+                    Email us at
+                    <a href="mailto:ancilmacalalad14@gmail.com">ancilmacalalad14@gmail.com</a>
+                </p>
+            </div>
+
+            <div class="ab-foot">
+                <button type="button" class="btn btn-primary btn-sm" onclick="closeAbout()">I understand</button>
+            </div>
+        </div>
+    </div>
 
     {{-- ============ MODAL ============ --}}
     <div class="wp-modal-overlay" id="wpModalOverlay" onclick="if(event.target===this) closeWpModal()">
@@ -510,6 +569,23 @@
         document.querySelectorAll('[data-bg]').forEach(el => {
             el.style.backgroundImage = `url('${el.dataset.bg}')`;
         });
+
+        /* ---------- About Us / Disclaimer modal (opens on page load) ---------- */
+        const aboutOverlay = document.getElementById('aboutOverlay');
+
+        function openAbout() {
+            aboutOverlay.hidden = false;
+            document.body.style.overflow = 'hidden';
+            aboutOverlay.querySelector('.ab-body').scrollTop = 0;
+        }
+
+        function closeAbout() {
+            aboutOverlay.hidden = true;
+            document.body.style.overflow = '';
+        }
+
+        // Show the disclaimer as soon as the page opens
+        openAbout();
 
         /* ---------- Hero video + sound (tries to start with sound) ---------- */
         const wpVid = document.getElementById('wpTeaserVideo');
@@ -831,56 +907,56 @@
             'pass-dino': {
                 icon: '🦕', tag: 'DinoLakbay',
                 tagColor: 'rgba(255,182,39,.18)', tagText: 'var(--amber)',
-                title: 'DinoLakbay Price List',
-                desc: 'Indoor dinosaur playground rates. The all-day pass covers the whole day.',
+                title: 'DinoLakbay Services',
+                desc: 'Indoor dinosaur playground services. Ask our staff for the current rates.',
                 list: [
-                    '1 Hour: ₱299',
-                    '2 Hours: ₱399',
-                    'All Day Pass: ₱599',
-                    'Guardian entry: ₱50',
-                    'Additional 30 mins: ₱149',
-                    'Additional hour: ₱199'
+                    '1 Hour play session',
+                    '2 Hours play session',
+                    'All Day Pass',
+                    'Guardian entry',
+                    'Additional 30 minutes',
+                    'Additional hour'
                 ]
             },
             'pass-roller': {
                 icon: '🛼', tag: 'Skataya',
                 tagColor: 'rgba(45,212,191,.15)', tagText: 'var(--teal)',
-                title: 'Skataya Price List',
-                desc: 'Regular rates and group bundle discounts for skating sessions. Skates and gear rental are available separately.',
+                title: 'Skataya Services',
+                desc: 'Roller skating sessions and group bundles. Skates and gear rental are available. Ask our staff for the current rates.',
                 list: [
-                    'Regular, 1 Hour: ₱249',
-                    'Regular, 2 Hours: ₱399',
-                    'Regular, All Day Pass: ₱599',
-                    'Socks: ₱50',
-                    'Group Bundle (4+1), 1 Hour: ₱996',
-                    'Group Bundle (4+1), 2 Hours: ₱1,596',
-                    'Skates and gear rental: ₱50',
+                    'Regular, 1 Hour',
+                    'Regular, 2 Hours',
+                    'Regular, All Day Pass',
+                    'Socks',
+                    'Group Bundle (4+1), 1 Hour',
+                    'Group Bundle (4+1), 2 Hours',
+                    'Skates and gear rental',
                     'Birthdays, group parties and company events: inquire inside'
                 ]
             },
             'pass-fields': {
                 icon: '🎡', tag: 'PiyestaRides',
                 tagColor: 'rgba(255,107,107,.15)', tagText: 'var(--coral)',
-                title: 'PiyestaRides: Per-Ride Prices',
-                desc: 'Each ride is priced per head, except car-based and per-ride attractions. Promo bundles may be available seasonally.',
+                title: 'PiyestaRides: Rides Offered',
+                desc: 'Rides you can enjoy in the PiyestaRides zone. Promo bundles may be available seasonally.',
                 list: [
-                    'Tiger Train: ₱60 per head',
-                    'Mini Carousel: ₱60 per head',
-                    'Star Speed: ₱60 per head',
-                    'Little Chicken: ₱60 per head',
-                    'Boat Pool: ₱60 per head',
-                    'Carousel: ₱60 per head',
-                    'Flying Chair: ₱60 per head',
-                    'Mini Ferris Wheel: ₱60 per head',
-                    'Samba Balloon: ₱60 per head',
-                    'Crazy Plane: ₱60 per head',
-                    'Vikings: ₱120 per head',
-                    'Go-Kart: ₱120 per head',
-                    'Inflatable Playground: ₱150 per head',
-                    'Mini Trampoline: ₱150 per 30 mins',
-                    'Rev & Roll: ₱150 per car',
-                    'Happy Cars: ₱150 per car',
-                    'Jurassic Adventure: ₱150 per ride'
+                    'Tiger Train',
+                    'Mini Carousel',
+                    'Star Speed',
+                    'Little Chicken',
+                    'Boat Pool',
+                    'Carousel',
+                    'Flying Chair',
+                    'Mini Ferris Wheel',
+                    'Samba Balloon',
+                    'Crazy Plane',
+                    'Vikings',
+                    'Go-Kart',
+                    'Inflatable Playground',
+                    'Mini Trampoline',
+                    'Rev & Roll',
+                    'Happy Cars',
+                    'Jurassic Adventure'
                 ]
             },
             'party': {
@@ -992,7 +1068,10 @@
         }
 
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeWpModal();
+            if (e.key === 'Escape') {
+                if (!aboutOverlay.hidden) closeAbout();
+                closeWpModal();
+            }
         });
     </script>
 
