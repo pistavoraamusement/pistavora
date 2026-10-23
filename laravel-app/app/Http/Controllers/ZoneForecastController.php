@@ -26,6 +26,13 @@ class ZoneForecastController extends Controller
      */
     private const TICKET_SQL = " AND (c.category_name LIKE '%ticket%' OR c.category_type LIKE '%ticket%') ";
 
+    /*
+     * Zones that have no "ticket" products (F&B only). For these, the Top
+     * Products charts show ALL products instead of tickets only.
+     * Other zones keep the ticket-only filter.
+     */
+    private const NON_TICKET_ZONES = ['Snackbar'];
+
     public function index(string $zone)
     {
         $zone = $this->resolveZone($zone);
@@ -102,7 +109,9 @@ class ZoneForecastController extends Controller
         [$paySql, $payBindings]   = $this->buildPaymentFilter($request);
         [$monthSql, $monthBindings] = $this->monthOrDateFilter($request);
 
-        $ticketSql = self::TICKET_SQL;
+        // Snackbar has no ticket products, so its charts use all products.
+        // Skataya / Piyestarides / Dinolakbay still use the ticket-only filter.
+        $ticketSql = in_array($zone, self::NON_TICKET_ZONES, true) ? '' : self::TICKET_SQL;
 
         // All-time (kept for the PDF report)
         $allTime = DB::select("
@@ -142,7 +151,7 @@ class ZoneForecastController extends Controller
             'total_revenue' => array_sum(array_map(fn($r) => (float) $r->total_revenue, $thisMonth)),
         ];
 
-        // Chart data: tickets only
+        // Chart data: tickets only (all products for Snackbar)
         $chartThisMonth = DB::select("
             SELECT p.product_name, c.category_name,
                    SUM(ti.quantity) AS total_qty,

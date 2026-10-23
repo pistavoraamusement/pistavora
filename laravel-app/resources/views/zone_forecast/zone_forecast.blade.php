@@ -9,6 +9,9 @@
     ];
     $zoneIcon    = $zoneIcons[$zone] ?? 'fa-chart-line';
     $hasVouchers = $hasVouchers ?? true;
+
+    // Snackbar has no ticket products, so its charts show all products.
+    $topLabel = $zone === 'Snackbar' ? 'Products' : 'Tickets';
 @endphp
 
 @section('title', $zone . ' Forecast')
@@ -231,8 +234,8 @@
   {{-- TOP PRODUCTS --}}
   <div id="tab-top" class="tab-pane active">
     <div class="fc-grid-2">
-      <div><h3 class="pane-title">Top Tickets This Month</h3><div class="chart-wrap"><canvas id="chartTopMonth"></canvas></div></div>
-      <div><h3 class="pane-title">All-Time Top Tickets</h3><div class="chart-wrap"><canvas id="chartTopAll"></canvas></div></div>
+      <div><h3 class="pane-title">Top {{ $topLabel }} This Month</h3><div class="chart-wrap"><canvas id="chartTopMonth"></canvas></div></div>
+      <div><h3 class="pane-title">All-Time Top {{ $topLabel }}</h3><div class="chart-wrap"><canvas id="chartTopAll"></canvas></div></div>
     </div>
     <div id="topTable" class="loading"><i class="fas fa-spinner"></i><br>Loading…</div>
   </div>
