@@ -44,10 +44,11 @@
   .fc-live::before{ content:''; width:7px; height:7px; border-radius:50%; background:#14B8A6; box-shadow:0 0 0 3px var(--fc-teal-bg); }
 
   .fc-btn{ display:inline-flex; align-items:center; gap:7px; font-family:inherit; font-size:.8rem; font-weight:700; padding:9px 16px; border-radius:10px; cursor:pointer; border:1px solid transparent; transition:background .15s, border-color .15s, color .15s; }
+  .fc-btn:disabled{ opacity:.6; cursor:not-allowed; }
   .fc-btn-primary{ background:var(--fc-primary); color:#fff; }
   .fc-btn-primary:hover{ background:var(--fc-primary-dark); }
   .fc-btn-ghost{ background:var(--fc-card); color:var(--fc-ink-soft); border-color:#CBD0DE; }
-  .fc-btn-ghost:hover{ border-color:var(--fc-primary); color:var(--fc-primary-dark); }
+  .fc-btn-ghost:hover:not(:disabled){ border-color:var(--fc-primary); color:var(--fc-primary-dark); }
 
   /* ---------- filters ---------- */
   .filter-bar{ display:flex; align-items:flex-end; gap:12px; flex-wrap:wrap; background:var(--fc-card); border:1px solid var(--fc-line); border-radius:var(--fc-radius); padding:12px 16px; margin-bottom:16px; box-shadow:var(--fc-shadow); }
@@ -139,6 +140,27 @@
   .toast{ position:fixed; bottom:18px; right:18px; background:#1E1B3A; color:#fff; padding:11px 16px; border-radius:var(--fc-radius-sm); display:none; box-shadow:0 10px 28px rgba(30,27,58,.2); z-index:3000; font-weight:700; font-size:.8rem; }
   .toast.error{ background:var(--fc-red); }
 
+  /* ---------- download progress modal ---------- */
+  .dl-overlay{ position:fixed; inset:0; background:rgba(27,29,40,.45); backdrop-filter:blur(2px); display:none; align-items:center; justify-content:center; z-index:4000; padding:16px; }
+  .dl-overlay.show{ display:flex; animation:fcFade .18s ease; }
+  .dl-card{ width:100%; max-width:380px; background:var(--fc-card); border-radius:var(--fc-radius); padding:24px; box-shadow:0 20px 50px rgba(15,23,42,.25); text-align:center; }
+  .dl-icon{ width:52px; height:52px; margin:0 auto 14px; border-radius:14px; background:var(--fc-primary-light); color:var(--fc-primary-dark); display:flex; align-items:center; justify-content:center; font-size:1.2rem; }
+  .dl-card.done .dl-icon{ background:var(--fc-teal-bg); color:var(--fc-teal); }
+  .dl-card.failed .dl-icon{ background:var(--fc-red-bg); color:var(--fc-red); }
+  .dl-title{ font-family:'Plus Jakarta Sans',sans-serif; font-size:1rem; font-weight:800; color:var(--fc-ink); margin:0 0 4px; }
+  .dl-status{ font-size:.78rem; color:var(--fc-muted); margin:0 0 16px; min-height:1.2em; }
+  .dl-track{ height:10px; background:var(--fc-primary-light); border-radius:20px; overflow:hidden; }
+  .dl-fill{ height:100%; width:0; border-radius:20px; background:linear-gradient(90deg,#4F46E5,#7C3AED); transition:width .25s ease; position:relative; overflow:hidden; }
+  .dl-fill::after{ content:''; position:absolute; inset:0; background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent); transform:translateX(-100%); animation:dlShine 1.2s infinite; }
+  .dl-card.done .dl-fill, .dl-card.failed .dl-fill{ animation:none; }
+  .dl-card.done .dl-fill::after, .dl-card.failed .dl-fill::after{ display:none; }
+  .dl-card.done .dl-fill{ background:linear-gradient(90deg,#14B8A6,#0F766E); }
+  .dl-card.failed .dl-fill{ background:var(--fc-red); }
+  @keyframes dlShine{ to{ transform:translateX(100%); } }
+  .dl-meta{ display:flex; justify-content:space-between; margin-top:8px; font-size:.72rem; font-weight:700; color:var(--fc-muted); }
+  .dl-pct{ color:var(--fc-primary-dark); }
+  .dl-actions{ margin-top:18px; display:flex; justify-content:center; }
+
   @media(max-width:640px){ .tab-pane{ padding:16px; } .chart-wrap{ height:210px; } .pct-label{ width:110px; } .fc-tabs{ padding:0 14px; gap:18px; } }
 </style>
 @endsection
@@ -151,7 +173,7 @@
     <p>ML-powered sales trends and demand predictions for {{ $zone }}.</p>
     <span class="fc-live">Live · <span id="generatedAt">Loading…</span></span>
   </div>
-  <button class="fc-btn fc-btn-ghost" id="downloadReport"><i class="fas fa-file-pdf"></i> Download Report</button>
+  <button class="fc-btn fc-btn-ghost" id="downloadReport"><i class="fas fa-file-pdf"></i> <span id="downloadReportLabel">Download Report</span></button>
 </div>
 
 {{-- Filters --}}
@@ -305,6 +327,22 @@
 </div>
 
 <div id="toast" class="toast"></div>
+
+{{-- Download progress modal --}}
+<div id="dlOverlay" class="dl-overlay" role="dialog" aria-modal="true" aria-labelledby="dlTitle">
+  <div id="dlCard" class="dl-card">
+    <div class="dl-icon"><i id="dlIcon" class="fas fa-file-pdf"></i></div>
+    <h3 id="dlTitle" class="dl-title">Preparing your report…</h3>
+    <p id="dlStatus" class="dl-status">Please wait while we generate the file.</p>
+    <div class="dl-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="dlTrack">
+      <div id="dlFill" class="dl-fill"></div>
+    </div>
+    <div class="dl-meta"><span id="dlSize"></span><span id="dlPct" class="dl-pct">0%</span></div>
+    <div class="dl-actions">
+      <button type="button" class="fc-btn fc-btn-ghost" id="dlCancel">Cancel</button>
+    </div>
+  </div>
+</div>
 
 @endsection
 
@@ -826,8 +864,188 @@
       document.getElementById('fDiscount').value = 'all';
       reloadFilteredData();
   });
-  document.getElementById('downloadReport').addEventListener('click', () => {
-      window.location.href = ML_API + '/report' + currentFilters();
+
+  /* ============================================================
+     DOWNLOAD REPORT — with loading bar
+     - Phase 1: server is generating the file (bar creeps up to ~60%)
+     - Phase 2: file is streaming in (real % if Content-Length is sent,
+                otherwise the bar eases toward 95%)
+     - Done:    bar hits 100% and the browser saves the file
+     ============================================================ */
+  const dl = {
+      btn:     document.getElementById('downloadReport'),
+      label:   document.getElementById('downloadReportLabel'),
+      overlay: document.getElementById('dlOverlay'),
+      card:    document.getElementById('dlCard'),
+      icon:    document.getElementById('dlIcon'),
+      title:   document.getElementById('dlTitle'),
+      status:  document.getElementById('dlStatus'),
+      track:   document.getElementById('dlTrack'),
+      fill:    document.getElementById('dlFill'),
+      pct:     document.getElementById('dlPct'),
+      size:    document.getElementById('dlSize'),
+      cancel:  document.getElementById('dlCancel'),
+      controller: null,
+      timer:   null,
+      value:   0,
+      busy:    false
+  };
+
+  function dlSetProgress(p) {
+      p = Math.max(dl.value, Math.min(100, p));   // never go backwards
+      dl.value = p;
+      const r = Math.round(p);
+      dl.fill.style.width = p + '%';
+      dl.pct.textContent  = r + '%';
+      dl.track.setAttribute('aria-valuenow', r);
+  }
+
+  function dlStartCreep(cap, speed) {
+      clearInterval(dl.timer);
+      dl.timer = setInterval(() => {
+          if (dl.value < cap) dlSetProgress(dl.value + Math.max(0.15, (cap - dl.value) * speed));
+      }, 200);
+  }
+
+  function dlFormatBytes(b) {
+      if (!b) return '';
+      if (b < 1024) return b + ' B';
+      if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+      return (b / 1048576).toFixed(2) + ' MB';
+  }
+
+  function dlOpen() {
+      dl.value = 0;
+      dl.card.className = 'dl-card';
+      dl.icon.className = 'fas fa-file-pdf';
+      dl.title.textContent  = 'Preparing your report…';
+      dl.status.textContent = 'Please wait while we generate the file.';
+      dl.size.textContent   = '';
+      dl.cancel.style.display = '';
+      dl.cancel.textContent = 'Cancel';
+      dl.fill.style.width = '0%';
+      dl.pct.textContent  = '0%';
+      dl.track.setAttribute('aria-valuenow', 0);
+      dl.overlay.classList.add('show');
+      dl.btn.disabled = true;
+      dl.label.textContent = 'Downloading…';
+  }
+
+  function dlClose() {
+      clearInterval(dl.timer);
+      dl.overlay.classList.remove('show');
+      dl.btn.disabled = false;
+      dl.label.textContent = 'Download Report';
+      dl.busy = false;
+      dl.controller = null;
+  }
+
+  function dlFail(message) {
+      clearInterval(dl.timer);
+      dl.card.classList.add('failed');
+      dl.icon.className = 'fas fa-triangle-exclamation';
+      dl.title.textContent  = 'Download failed';
+      dl.status.textContent = message || 'Something went wrong. Please try again.';
+      dl.cancel.textContent = 'Close';
+      dl.btn.disabled = false;
+      dl.label.textContent = 'Download Report';
+      dl.busy = false;
+  }
+
+  function dlFilename(res) {
+      const cd = res.headers.get('Content-Disposition') || '';
+      let m = cd.match(/filename\*=UTF-8''([^;]+)/i);
+      if (m) { try { return decodeURIComponent(m[1]); } catch(_) {} }
+      m = cd.match(/filename="?([^";]+)"?/i);
+      if (m) return m[1];
+      const stamp = new Date().toISOString().slice(0, 10);
+      const ct = (res.headers.get('Content-Type') || '').toLowerCase();
+      const ext = ct.includes('pdf') ? 'pdf'
+                : ct.includes('csv') ? 'csv'
+                : ct.includes('spreadsheet') || ct.includes('excel') ? 'xlsx'
+                : 'pdf';
+      return ZONE.replace(/\s+/g, '-').toLowerCase() + '-forecast-report-' + stamp + '.' + ext;
+  }
+
+  async function downloadReport() {
+      if (dl.busy) return;
+      dl.busy = true;
+      dl.controller = new AbortController();
+      dlOpen();
+      dlSetProgress(3);
+      dlStartCreep(60, 0.03);                      // phase 1: waiting for the server
+
+      try {
+          const res = await fetch(ML_API + '/report' + currentFilters(), {
+              headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/pdf, application/octet-stream, */*' },
+              signal: dl.controller.signal
+          });
+          if (!res.ok) throw new Error('Server returned HTTP ' + res.status);
+
+          // phase 2: file is coming in
+          dl.title.textContent  = 'Downloading report…';
+          dl.status.textContent = 'Receiving file from the server.';
+          clearInterval(dl.timer);
+
+          const total = parseInt(res.headers.get('Content-Length') || '0', 10);
+          const chunks = [];
+          let received = 0;
+
+          if (res.body && res.body.getReader) {
+              const reader = res.body.getReader();
+              if (!total) dlStartCreep(95, 0.04);   // size unknown → ease toward 95%
+              while (true) {
+                  const { done, value } = await reader.read();
+                  if (done) break;
+                  chunks.push(value);
+                  received += value.length;
+                  dl.size.textContent = dlFormatBytes(received) + (total ? ' / ' + dlFormatBytes(total) : '');
+                  if (total) dlSetProgress(60 + (received / total) * 40);
+              }
+          } else {
+              // very old browsers: no streaming, just wait for the whole blob
+              dlStartCreep(95, 0.04);
+              chunks.push(await res.arrayBuffer());
+          }
+
+          clearInterval(dl.timer);
+          const blob = new Blob(chunks, { type: res.headers.get('Content-Type') || 'application/octet-stream' });
+          if (!blob.size) throw new Error('The report came back empty.');
+
+          dlSetProgress(100);
+          dl.card.classList.add('done');
+          dl.icon.className = 'fas fa-circle-check';
+          dl.title.textContent  = 'Report ready!';
+          dl.status.textContent = 'Your download should start automatically.';
+          dl.size.textContent   = dlFormatBytes(blob.size);
+          dl.cancel.style.display = 'none';
+
+          // trigger the browser download
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = dlFilename(res);
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 10000);
+
+          showToast('Report downloaded');
+          setTimeout(dlClose, 1200);
+      } catch (e) {
+          if (e.name === 'AbortError') { dlClose(); showToast('Download cancelled'); return; }
+          console.error('Report download error', e);
+          dlFail(e.message);
+      }
+  }
+
+  dl.btn.addEventListener('click', downloadReport);
+  dl.cancel.addEventListener('click', () => {
+      if (dl.busy && dl.controller) dl.controller.abort();
+      else dlClose();
+  });
+  document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && dl.overlay.classList.contains('show')) dl.cancel.click();
   });
 
   /* BOOT — each loader runs independently so one failure can't block the rest */
