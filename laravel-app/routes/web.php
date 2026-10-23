@@ -219,13 +219,26 @@ Route::middleware('auth.session')->group(function () use ($secure, $userPrefix) 
 
 /*
 |--------------------------------------------------------------------------
+| /home  (any logged-in user)
+|--------------------------------------------------------------------------
+| Admin goes straight to Sales Forecast.
+| Everyone else keeps the existing HomeController behavior
+| (customer -> /app/dashboard, cashier -> /inventory, etc.), so this must be open
+| to every logged-in user, not just staff. Otherwise customers get a 403.
+*/
+Route::get('/home', function () {
+    if (session('role') === 'admin') {
+        return redirect()->route('ml.forecast');
+    }
+
+    return app()->call(HomeController::class . '@index');
+})->middleware('auth.session');
+
+/*
+|--------------------------------------------------------------------------
 | STAFF: cashier, tl, manager, admin
 |--------------------------------------------------------------------------
 */
-// /home only redirects by role (customer -> /app/dashboard, cashier -> /inventory), so it must
-// be open to every logged-in user, not just staff. Otherwise customers get a 403.
-Route::get('/home', [HomeController::class, 'index'])->middleware('auth.session');
-
 Route::middleware(['auth.session', 'role:cashier,tl,manager,admin'])->group(function () use ($pagePaths) {
 
     // Inventory: VIEW ONLY page, open to cashiers (obscured URL).
@@ -299,9 +312,10 @@ Route::middleware(['auth.session', 'role:tl,manager,admin'])->group(function () 
     Route::post('/ai/promo-suggest', [PromoAiController::class, 'suggest'])
         ->middleware('throttle:20,1')->name('ai.promo-suggest');
 
-    // Analytics / ML Forecast
+    // Analytics
     Route::get("/{$pagePaths['analytics']}", [AnalyticsController::class, 'index'])->name('analytics.index');
 
+    // ML Forecast API
     Route::get('/api/ml/summary', [MlForecastController::class, 'summary']);
     Route::get('/api/ml/top_products', [MlForecastController::class, 'topProducts']);
     Route::get('/api/ml/day_of_week', [MlForecastController::class, 'dayOfWeek']);
@@ -310,10 +324,26 @@ Route::middleware(['auth.session', 'role:tl,manager,admin'])->group(function () 
     Route::get('/api/ml/monthly_trend', [MlForecastController::class, 'monthlyTrend']);
     Route::get('/api/ml/report', [MlForecastController::class, 'downloadReport']);
     Route::get('/api/ml/voucher_summary', [MlForecastController::class, 'voucherSummary']);
-    Route::get('/api/zone-forecast/{zone}/report', [ZoneForecastController::class, 'downloadReport']);
-    Route::get('/api/zone-forecast/{zone}/voucher_summary', [ZoneForecastController::class, 'voucherSummary']);
-    Route::get("/{$pagePaths['ml_forecast']}", [MlForecastController::class, 'index'])->name('ml.forecast');
     Route::get('/api/ml/zone-summary', [MlForecastController::class, 'zoneSummary']);
+
+    // Sales Forecast page (ONE name only: ml.forecast).
+    // Used by AuthController, /home redirect, sidebar and Blade views.
+    Route::get("/{$pagePaths['ml_forecast']}", [MlForecastController::class, 'index'])->name('ml.forecast');
+
+    // Zone Forecast API (all behind auth.session + role:tl,manager,admin)
+    Route::prefix('api/zone-forecast/{zone}')->group(function () {
+        Route::get('/summary',             [ZoneForecastController::class, 'summary']);
+        Route::get('/top_products',        [ZoneForecastController::class, 'topProducts']);
+        Route::get('/day_of_week',         [ZoneForecastController::class, 'dayOfWeek']);
+        Route::get('/hourly_peaks',        [ZoneForecastController::class, 'hourlyPeaks']);
+        Route::get('/next_month_forecast', [ZoneForecastController::class, 'nextMonthForecast']);
+        Route::get('/monthly_trend',       [ZoneForecastController::class, 'monthlyTrend']);
+        Route::get('/payment_breakdown',   [ZoneForecastController::class, 'paymentBreakdown']);
+        Route::get('/category_breakdown',  [ZoneForecastController::class, 'categoryBreakdown']);
+        Route::get('/voucher_summary',     [ZoneForecastController::class, 'voucherSummary']);
+        Route::get('/discount_summary',    [ZoneForecastController::class, 'discountSummary']);
+        Route::get('/report',              [ZoneForecastController::class, 'downloadReport']);
+    });
 
     // Zone Forecast pages (obscured URLs from config/security.php -> zone_paths).
     // Route NAMES are unchanged, so use route('zone.dinoAdventure') etc. in Blade.
@@ -324,7 +354,6 @@ Route::middleware(['auth.session', 'role:tl,manager,admin'])->group(function () 
         ->defaults('zone', 'Skataya')->name('zone.rollerFever');
     Route::get("/{$zonePaths['dinoAdventure']}", [ZoneForecastController::class, 'index'])
         ->defaults('zone', 'Dinolakbay')->name('zone.dinoAdventure');
-        Route::get('/api/zone-forecast/{zone}/discount_summary', [ZoneForecastController::class, 'discountSummary']);
 });
 
 /*

@@ -17,9 +17,6 @@
   .kpi-label { font-size: 9px; color: #5B5D72; text-transform: uppercase; }
   .kpi-value { font-size: 14px; font-weight: bold; color: #1B1D28; }
   .footer { margin-top: 20px; font-size: 9px; color: #5B5D72; text-align: right; }
-  .trend-up { color: #22C3AE; font-weight: bold; }
-  .trend-down { color: #F0506E; font-weight: bold; }
-  .trend-stable { color: #946600; font-weight: bold; }
 </style>
 </head>
 <body>
@@ -27,7 +24,7 @@
   <div class="header">
     <h1>{{ $title }}</h1>
     <div class="meta">
-      Period: {{ $dateFrom ?? 'All time' }} &rarr; {{ $dateTo ?? 'Present' }}
+      Period: {{ $dateFrom ?: 'All time' }} &rarr; {{ $dateTo ?: 'Present' }}
       &nbsp;|&nbsp; Payment: {{ $paymentMethod ?? 'All Methods' }}
       @if($zone) &nbsp;|&nbsp; Zone: {{ $zone }} @endif
     </div>
@@ -36,10 +33,10 @@
   <h2 class="section">Key Metrics</h2>
   <table>
     <tr class="kpi-row">
-      <td style="width:25%"><div class="kpi-label">Transactions</div><div class="kpi-value">{{ number_format($summary['total_txn']) }}</div></td>
-      <td style="width:25%"><div class="kpi-label">Gross</div><div class="kpi-value">&#8369;{{ number_format($summary['total_revenue'], 2) }}</div></td>
-      <td style="width:25%"><div class="kpi-label">Items Sold</div><div class="kpi-value">{{ number_format($summary['total_items_sold']) }}</div></td>
-      <td style="width:25%"><div class="kpi-label">Low Stock</div><div class="kpi-value">{{ $summary['low_stock_count'] }}</div></td>
+      <td style="width:25%"><div class="kpi-label">Transactions</div><div class="kpi-value">{{ number_format($summary['total_txn'] ?? 0) }}</div></td>
+      <td style="width:25%"><div class="kpi-label">Gross</div><div class="kpi-value">&#8369;{{ number_format($summary['total_revenue'] ?? 0, 2) }}</div></td>
+      <td style="width:25%"><div class="kpi-label">Items Sold</div><div class="kpi-value">{{ number_format($summary['total_items_sold'] ?? 0) }}</div></td>
+      <td style="width:25%"><div class="kpi-label">Discounts</div><div class="kpi-value">&#8369;{{ number_format($summary['total_discounts'] ?? 0, 2) }}</div></td>
     </tr>
   </table>
 
@@ -47,7 +44,7 @@
   <table>
     <thead><tr><th>#</th><th>Product</th><th>Category</th><th>Units Sold</th><th>Gross</th></tr></thead>
     <tbody>
-      @forelse($topProducts['this_month'] as $i => $r)
+      @forelse(($topProducts['this_month'] ?? []) as $i => $r)
       <tr>
         <td>{{ $i+1 }}</td>
         <td>{{ $r['product_name'] }}</td>
@@ -65,7 +62,7 @@
   <table>
     <thead><tr><th>Category</th><th>Type</th><th>Units Sold</th><th>Gross</th><th>% of Total</th></tr></thead>
     <tbody>
-      @forelse($categoryBreakdown['by_category'] as $r)
+      @forelse(($categoryBreakdown['by_category'] ?? []) as $r)
       <tr>
         <td>{{ $r['category_name'] }}</td>
         <td>{{ $r['category_type'] }}</td>
@@ -83,7 +80,7 @@
   <table>
     <thead><tr><th>#</th><th>Product</th><th>Category</th><th>Units</th><th>Gross</th></tr></thead>
     <tbody>
-      @forelse($categoryBreakdown['best_sellers'] as $i => $r)
+      @forelse(($categoryBreakdown['best_sellers'] ?? []) as $i => $r)
       <tr>
         <td>{{ $i+1 }}</td><td>{{ $r['product_name'] }}</td><td>{{ $r['category_name'] }}</td>
         <td>{{ number_format($r['total_qty']) }}</td><td>&#8369;{{ number_format($r['total_revenue'], 2) }}</td>
@@ -98,7 +95,7 @@
   <table>
     <thead><tr><th>#</th><th>Product</th><th>Category</th><th>Units</th><th>Gross</th></tr></thead>
     <tbody>
-      @forelse($categoryBreakdown['worst_sellers'] as $i => $r)
+      @forelse(($categoryBreakdown['worst_sellers'] ?? []) as $i => $r)
       <tr>
         <td>{{ $i+1 }}</td><td>{{ $r['product_name'] }}</td><td>{{ $r['category_name'] }}</td>
         <td>{{ number_format($r['total_qty']) }}</td><td>&#8369;{{ number_format($r['total_revenue'], 2) }}</td>
@@ -113,7 +110,7 @@
   <table>
     <thead><tr><th>Method</th><th>Transactions</th><th>Gross</th><th>% of Total</th></tr></thead>
     <tbody>
-      @forelse($paymentBreakdown['methods'] as $r)
+      @forelse(($paymentBreakdown['methods'] ?? []) as $r)
       <tr>
         <td>{{ $r['payment_method'] }}</td>
         <td>{{ number_format($r['num_transactions']) }}</td>
@@ -125,19 +122,45 @@
       @endforelse
     </tbody>
   </table>
-  @isset($voucherSummary)
+
+  <h2 class="section">Discounts</h2>
+  <table>
+    <tr class="kpi-row">
+      <td style="width:33%"><div class="kpi-label">Total Discounts</div><div class="kpi-value">&#8369;{{ number_format($discountSummary['total_discount'] ?? 0, 2) }}</div></td>
+      <td style="width:33%"><div class="kpi-label">Discounted Transactions</div><div class="kpi-value">{{ number_format($discountSummary['total_transactions'] ?? 0) }}</div></td>
+      <td style="width:33%"><div class="kpi-label">Share of Gross</div><div class="kpi-value">{{ $discountSummary['percent_of_gross'] ?? 0 }}%</div></td>
+    </tr>
+  </table>
+  <table>
+    <thead><tr><th>#</th><th>Discount Type</th><th>Transactions</th><th>Total Discount</th><th>% of Discounts</th></tr></thead>
+    <tbody>
+      @forelse(($discountSummary['by_type'] ?? []) as $i => $r)
+      <tr>
+        <td>{{ $i+1 }}</td>
+        <td>{{ $r['discount_type'] }}</td>
+        <td>{{ number_format($r['num_transactions']) }}</td>
+        <td>&#8369;{{ number_format($r['total_discount'], 2) }}</td>
+        <td>{{ $r['percentage'] }}%</td>
+      </tr>
+      @empty
+      <tr><td colspan="5">No discounts in this period.</td></tr>
+      @endforelse
+    </tbody>
+  </table>
+
+  @if(!empty($hasVouchers))
   <h2 class="section">Online Booking Vouchers (Redeemed)</h2>
   <table>
     <tr class="kpi-row">
-      <td style="width:50%"><div class="kpi-label">Vouchers Redeemed</div><div class="kpi-value">{{ number_format($voucherSummary['total_vouchers']) }}</div></td>
-      <td style="width:50%"><div class="kpi-label">Voucher Amount</div><div class="kpi-value">&#8369;{{ number_format($voucherSummary['total_amount'], 2) }}</div></td>
+      <td style="width:50%"><div class="kpi-label">Vouchers Redeemed</div><div class="kpi-value">{{ number_format($voucherSummary['total_vouchers'] ?? 0) }}</div></td>
+      <td style="width:50%"><div class="kpi-label">Voucher Amount</div><div class="kpi-value">&#8369;{{ number_format($voucherSummary['total_amount'] ?? 0, 2) }}</div></td>
     </tr>
   </table>
 
   <table>
     <thead><tr><th>#</th><th>Package</th><th>Vouchers</th><th>Amount</th></tr></thead>
     <tbody>
-      @forelse($voucherSummary['by_item'] as $i => $r)
+      @forelse(($voucherSummary['by_item'] ?? []) as $i => $r)
       <tr>
         <td>{{ $i+1 }}</td>
         <td>{{ $r['name'] }}</td>
@@ -154,19 +177,19 @@
   <table>
     <thead><tr><th>Visit Date</th><th>Vouchers</th><th>Amount</th></tr></thead>
     <tbody>
-      @forelse($voucherSummary['upcoming'] as $r)
+      @forelse(($voucherSummary['upcoming'] ?? []) as $r)
       <tr>
-        <td>{{ $r->visit_date }}</td>
-        <td>{{ number_format($r->vouchers) }}</td>
-        <td>&#8369;{{ number_format($r->total_amount, 2) }}</td>
+        <td>{{ $r['visit_date'] }}</td>
+        <td>{{ number_format($r['vouchers']) }}</td>
+        <td>&#8369;{{ number_format($r['total_amount'], 2) }}</td>
       </tr>
       @empty
       <tr><td colspan="3">No upcoming unredeemed vouchers.</td></tr>
       @endforelse
     </tbody>
   </table>
-  @endisset
-  
+  @endif
+
   <div class="footer">Generated {{ $generatedAt }}</div>
 
 </body>

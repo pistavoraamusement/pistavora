@@ -178,11 +178,11 @@ class ZoneForecastController extends Controller
         ", array_merge([$zone], $dateBindings, $payBindings));
 
         return response()->json([
-            'all_time'         => $allTime,
-            'this_month'       => $thisMonth,
+            'all_time'          => $allTime,
+            'this_month'        => $thisMonth,
             'this_month_totals' => $totals,
-            'chart_this_month' => $chartThisMonth,
-            'chart_all_time'   => $chartAllTime,
+            'chart_this_month'  => $chartThisMonth,
+            'chart_all_time'    => $chartAllTime,
         ]);
     }
 
@@ -465,7 +465,7 @@ class ZoneForecastController extends Controller
             }
             if (count($X) < 3) {
                 // Not enough history for regression: use a flat average estimate instead
-                $windowDays = max(1, $minDate->diffInDays($today) + 1);
+                $windowDays = max(1, (int) $minDate->diffInDays($today) + 1);
                 $dailyAvg   = array_sum($Y) / $windowDays;
 
                 $results[] = [
@@ -476,7 +476,7 @@ class ZoneForecastController extends Controller
                     'current_month_avg'   => round($dailyAvg, 1),
                     'trend'               => 'stable',
                     'data_points'         => count($X),
-                    'low_data'            => false,
+                    'low_data'            => true,
                 ];
                 continue;
             }
@@ -509,6 +509,7 @@ class ZoneForecastController extends Controller
                 'current_month_avg'   => round($thisMonthAvg, 1),
                 'trend'               => $trend,
                 'data_points'         => count($X),
+                'low_data'            => false,
             ];
         }
 
@@ -548,13 +549,45 @@ class ZoneForecastController extends Controller
     /**
      * Generates and downloads a PDF report for this zone, scoped to the
      * currently selected date_from / date_to / payment_method filters.
+     * With no dates chosen it defaults to the current month, so every
+     * section of the PDF covers the same period.
      */
     public function downloadReport(Request $request, string $zone)
     {
         $zone = $this->resolveZone($zone);
+
+        if (!$request->query('date_from') && !$request->query('date_to')) {
+            $request->query->set('date_from', now()->startOfMonth()->toDateString());
+            $request->query->set('date_to', now()->toDateString());
+        }
+
         $dateFrom = $request->query('date_from');
         $dateTo   = $request->query('date_to');
         $payment  = $request->query('payment_method', 'all');
+
+        // Same fallbacks as summary(): a failing block must not take down the whole PDF.
+        try {
+            $discountSummary = $this->discountData($request, $zone);
+        } catch (\Throwable $e) {
+            \Log::error('Report discountData failed: ' . $e->getMessage());
+            $discountSummary = [
+                'total_discount' => 0, 'total_transactions' => 0,
+                'gross' => 0, 'percent_of_gross' => 0, 'by_type' => [],
+            ];
+        }
+
+        try {
+            $voucherSummary = $this->voucherData($request, self::ZONE_SERVICES[$zone] ?? []);
+        } catch (\Throwable $e) {
+            \Log::error('Report voucherData failed: ' . $e->getMessage());
+            $voucherSummary = [
+                'total_vouchers' => 0, 'total_amount' => 0.0,
+                'by_item' => [], 'by_day' => [], 'upcoming' => [],
+            ];
+        }
+
+        // Plain arrays everywhere so the Blade view can use $row['key'] consistently.
+        $voucherSummary = json_decode(json_encode($voucherSummary), true);
 
         $pdf = Pdf::loadView('reports.sales_report', [
             'title'             => $zone . ' — Forecast Report',
@@ -566,8 +599,8 @@ class ZoneForecastController extends Controller
             'topProducts'       => $this->topProducts($request, $zone)->getData(true),
             'paymentBreakdown'  => $this->paymentBreakdown($request, $zone)->getData(true),
             'categoryBreakdown' => $this->categoryBreakdown($request, $zone)->getData(true),
-            'discountSummary'   => $this->discountData($request, $zone),
-            'voucherSummary'    => $this->voucherData($request, self::ZONE_SERVICES[$zone] ?? []),
+            'discountSummary'   => $discountSummary,
+            'voucherSummary'    => $voucherSummary,
             'hasVouchers'       => $this->zoneHasVouchers($zone),
             'generatedAt'       => now()->format('F j, Y g:i A'),
         ])->setPaper('a4', 'portrait');
@@ -772,9 +805,10 @@ class ZoneForecastController extends Controller
         $totalV = 0;
         $totalA = 0.0;
         foreach ($redeemed as $r) {
+            // packageInfo() must be a PUBLIC method on BookingController.
             $info = $booking->packageInfo($r->service, $r->package);
             $items[] = [
-                'name'         => $info['service_name'] . ' — ' . $info['package_name'] . ' (' . $r->tier . ' pax)',
+                'name'         => ($info['service_name'] ?? $r->service) . ' — ' . ($info['package_name'] ?? $r->package) . ' (' . $r->tier . ' pax)',
                 'vouchers'     => (int) $r->vouchers,
                 'total_amount' => (float) $r->total_amount,
             ];

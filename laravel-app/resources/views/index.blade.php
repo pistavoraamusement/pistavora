@@ -393,7 +393,7 @@
                 {{-- Sales Forecast is the parent card; the 3 zone pages are nested inside it --}}
                 <div class="forecast-group" style="grid-column: span 1;">
                     <div class="forecast-main-row">
-                        <a href="{{ route('ml-forecast.index') }}" class="app-card" style="border:none;box-shadow:none;padding:0;flex:1;">
+                        <a href="{{ route('ml.forecast') }}" class="app-card" style="border:none;box-shadow:none;padding:0;flex:1;">
                             <div class="app-card-icon"><i class="fa-solid fa-chart-line"></i></div>
                             <div class="app-card-text">
                                 <h2>Sales Forecast</h2>
@@ -407,8 +407,8 @@
                     </div>
                     <div class="forecast-sublist" id="forecastCardSublist">
                         <a href="{{ route('zone.fieldOfRides') }}"><i class="fa-solid fa-ferris-wheel"></i> PiyestaRides</a>
-                        <a href="{{ route('zone.RollerFever') }}"><i class="fa-solid fa-bolt"></i> Skataya</a>
-                        <a href="{{ route('zone.DinoAdventure') }}"><i class="fa-solid fa-dragon"></i> DinoLakbay</a>
+                        <a href="{{ route('zone.rollerFever') }}"><i class="fa-solid fa-bolt"></i> Skataya</a>
+                        <a href="{{ route('zone.dinoAdventure') }}"><i class="fa-solid fa-dragon"></i> DinoLakbay</a>
                     </div>
                 </div>
             @else
@@ -421,7 +421,7 @@
                     </div>
                     <i class="fa-solid fa-chevron-right app-card-arrow"></i>
                 </a>
-                <a href="{{ route('zone.RollerFever') }}" class="app-card">
+                <a href="{{ route('zone.rollerFever') }}" class="app-card">
                     <div class="app-card-icon"><i class="fa-solid fa-bolt"></i></div>
                     <div class="app-card-text">
                         <h2>Skataya</h2>
@@ -429,7 +429,7 @@
                     </div>
                     <i class="fa-solid fa-chevron-right app-card-arrow"></i>
                 </a>
-                <a href="{{ route('zone.DinoAdventure') }}" class="app-card">
+                <a href="{{ route('zone.dinoAdventure') }}" class="app-card">
                     <div class="app-card-icon"><i class="fa-solid fa-dragon"></i></div>
                     <div class="app-card-text">
                         <h2>DinoLakbay</h2>
