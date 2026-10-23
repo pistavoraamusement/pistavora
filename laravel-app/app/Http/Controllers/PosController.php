@@ -404,6 +404,8 @@ class PosController extends Controller
             'manual_discount'  => 'nullable|numeric|min:0',
             'special_discount' => 'nullable|numeric|min:0',
             'special_type'     => 'nullable|string|max:30',
+            // PWD/Senior discount rate chosen by the cashier (10/20/30/40/50 %)
+            'special_rate'     => 'nullable|numeric|in:10,20,30,40,50',
             'discount_mode'    => 'nullable|string|max:20',
             'discount_value'   => 'nullable|numeric',
             'items'            => 'required|array|min:1',
@@ -514,6 +516,33 @@ class PosController extends Controller
         }
         // ======================================
 
+        // === DISCOUNT BREAKDOWN (used by both the DB rows and the system log) ===
+        // Manual discount (typed by the cashier) and PWD/Senior/Seasons are tracked separately.
+        $manual   = round((float) ($data['manual_discount']  ?? 0), 2);
+        $special  = round((float) ($data['special_discount'] ?? 0), 2);
+        $specType = trim((string) ($data['special_type'] ?? '')) ?: null;
+        $specRate = isset($data['special_rate']) ? (float) $data['special_rate'] : 20.0;
+        $mode     = $data['discount_mode'] ?? null;
+        $value    = isset($data['discount_value']) ? (float) $data['discount_value'] : null;
+        $pct      = ($gross > 0 && $manual > 0) ? round(($manual / $gross) * 100, 2) : 0;
+
+        // One row per discount component, saved to transaction_discounts.
+        // Vouchers never have a discount ($discount is forced to 0 above).
+        $discountRows = [];
+        if ($discount > 0) {
+            if ($manual > 0) {
+                $discountRows[] = ['discount_type' => 'Manual', 'discount_rate' => $pct ?: null, 'amount' => $manual];
+            }
+            if ($special > 0) {
+                $discountRows[] = ['discount_type' => $specType ?: 'PWD/Senior', 'discount_rate' => $specRate, 'amount' => $special];
+            }
+            if ($manual <= 0 && $special <= 0) {
+                // Discount without a breakdown (outdated browser JS or a tampered request)
+                $discountRows[] = ['discount_type' => 'Unspecified', 'discount_rate' => null, 'amount' => round($discount, 2)];
+            }
+        }
+        // ========================================================================
+
         try {
             $transactionId = DB::transaction(function () use (
                 $cashierId,
@@ -533,7 +562,8 @@ class PosController extends Controller
                 $pwdSeniorType,
                 $pwdSeniorName,
                 $pwdSeniorIdNum,
-                $voucherBooking
+                $voucherBooking,
+                $discountRows
             ) {
                 // Re-check + lock the voucher inside the transaction so it cannot
                 // be double-redeemed even if two cashiers check out at the same time.
@@ -568,6 +598,18 @@ class PosController extends Controller
                     'pwd_senior_id_number' => $pwdSeniorIdNum,
                     'created_at'         => now(),
                 ]);
+
+                // Discount breakdown (Manual / Senior Citizen / PWD / Seasons ...)
+                foreach ($discountRows as $dr) {
+                    DB::table('transaction_discounts')->insert([
+                        'transaction_id' => $transactionId,
+                        'discount_type'  => mb_substr($dr['discount_type'], 0, 60),
+                        'discount_rate'  => $dr['discount_rate'],
+                        'amount'         => $dr['amount'],
+                        'created_at'     => now(),
+                        'updated_at'     => now(),
+                    ]);
+                }
 
                 foreach ($items as $item) {
                     $price = (float) $item['price'];
@@ -652,15 +694,9 @@ class PosController extends Controller
 
         // LOG: discounts (vouchers excluded, their discount is always 0).
         // Manual discount (typed by the cashier) and PWD/Senior are logged separately.
-        // Only the PWD/Senior type is logged, never the name or ID number.
+        // Only the PWD/Senior type and rate are logged, never the name or ID number.
         if ($discount > 0) {
-            $manual   = round((float) ($data['manual_discount']  ?? 0), 2);
-            $special  = round((float) ($data['special_discount'] ?? 0), 2);
-            $specType = $data['special_type'] ?? null;
-            $mode     = $data['discount_mode'] ?? null;
-            $value    = isset($data['discount_value']) ? (float) $data['discount_value'] : null;
-            $pct      = ($gross > 0 && $manual > 0) ? round(($manual / $gross) * 100, 2) : 0;
-            $maxPct   = (float) config('system_log.pos_discount_anomaly_percent', 25);
+            $maxPct = (float) config('system_log.pos_discount_anomaly_percent', 25);
 
             // Breakdown doesn't match the total discount = the request may have been tampered with
             $mismatch = abs(($manual + $special) - $discount) > 0.05;
@@ -699,16 +735,17 @@ class PosController extends Controller
             }
 
             if ($special > 0) {
-                // PWD/Senior: type only, never the name or ID number
+                // PWD/Senior: type and rate only, never the name or ID number
                 $this->audit(
                     'pwd_senior_discount',
-                    ($specType ?: 'PWD/Senior') . " discount of ₱" . number_format($special, 2) . " on {$invoiceRef}"
+                    ($specType ?: 'PWD/Senior') . " {$specRate}% discount of ₱" . number_format($special, 2) . " on {$invoiceRef}"
                         . ($manual <= 0 ? $flagText : ''),
                     'info',
                     [
                         'transaction_id'  => $transactionId,
                         'special'         => $special,
                         'pwd_senior_type' => $specType,
+                        'special_rate'    => $specRate,
                         'total'           => $total,
                     ],
                     ($manual <= 0 && !empty($flags))
@@ -1204,15 +1241,16 @@ class PosController extends Controller
             ->whereIn('id', $voidedItems->pluck('id'))
             ->update(['cutoff_id' => $cutoffId]);
 
-            DB::table('products')
-        ->whereIn('category_id', function ($q) {
-            $q->select('category_id')->from('categories')->where('is_stock_tracked', 1);
-        })
-        ->update([
-            'beginning_stock' => DB::raw('stock'),
-            'actual_count'    => null,
-            'counted_at'      => null,
-        ]);
+        DB::table('products')
+            ->whereIn('category_id', function ($q) {
+                $q->select('category_id')->from('categories')->where('is_stock_tracked', 1);
+            })
+            ->update([
+                'beginning_stock' => DB::raw('stock'),
+                'actual_count'    => null,
+                'counted_at'      => null,
+            ]);
+
         $voidedTxnCount = $voidedTxns->count();
         $voidedTxnTotal = (float) $voidedTxns->sum('total_amount');
 
@@ -1455,6 +1493,8 @@ class PosController extends Controller
 
                 // Mark as Voided. The record is not deleted, for the audit trail
                 // (BIR-compliant: every void must be traceable).
+                // transaction_discounts rows are kept too; the discount reports
+                // only count transactions whose status is 'Completed'.
                 DB::table('sales_transactions')
                     ->where('transaction_id', $transactionId)
                     ->update([

@@ -61,6 +61,8 @@
   .kpi-strip{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:16px; }
   @media(max-width:980px){ .kpi-strip{ grid-template-columns:repeat(2,1fr); } }
   @media(max-width:520px){ .kpi-strip{ grid-template-columns:1fr; } }
+  .kpi-strip.cols-3{ grid-template-columns:repeat(3,1fr); }
+  @media(max-width:760px){ .kpi-strip.cols-3{ grid-template-columns:1fr; } }
   .kpi-card{ background:var(--fc-card); border:1px solid var(--fc-line); border-radius:var(--fc-radius); padding:16px; display:flex; align-items:center; gap:14px; box-shadow:var(--fc-shadow); }
   .kpi-icon{ width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; background:var(--fc-primary-light); color:var(--fc-primary-dark); }
   .kpi-card.is-revenue .kpi-icon{ background:var(--fc-accent-light); color:#B93815; }
@@ -101,6 +103,8 @@
   .ml-table td{ padding:11px 12px; border-bottom:1px solid var(--fc-line); color:var(--fc-ink-soft); }
   .ml-table tr:last-child td{ border-bottom:none; }
   .ml-table tbody tr:hover td{ background:var(--fc-bg); }
+  .ml-table tfoot td{ background:var(--fc-primary-light); color:var(--fc-primary-dark); font-weight:800; border-top:2px solid var(--fc-primary); border-bottom:none; }
+  .ml-table tfoot tr:hover td{ background:var(--fc-primary-light); }
 
   /* ---------- percentage bars ---------- */
   .pct-row{ display:flex; align-items:center; gap:12px; padding:9px 0; border-bottom:1px solid var(--fc-line); flex-wrap:wrap; }
@@ -158,6 +162,10 @@
     <label for="fPayment">Payment</label>
     <select id="fPayment"><option value="all">All Methods</option></select>
   </div>
+  <div class="filter-field">
+    <label for="fDiscount">Discount Type</label>
+    <select id="fDiscount"><option value="all">All Types</option></select>
+  </div>
   <div class="filter-spacer"></div>
   <button class="fc-btn fc-btn-ghost" id="clearFilters">Clear</button>
   <button class="fc-btn fc-btn-primary" id="applyFilters">Apply</button>
@@ -167,19 +175,19 @@
 <div class="kpi-strip">
   <div class="kpi-card">
     <span class="kpi-icon"><i class="fas fa-receipt"></i></span>
-    <div class="kpi-body"><div class="kpi-label">Transactions</div><div class="kpi-value" id="mTxn">—</div><div class="kpi-sub">This month, completed</div></div>
+    <div class="kpi-body"><div class="kpi-label">Transactions</div><div class="kpi-value" id="mTxn">—</div><div class="kpi-sub kpi-period">This month, completed</div></div>
   </div>
   <div class="kpi-card is-revenue">
     <span class="kpi-icon"><i class="fas fa-peso-sign"></i></span>
-    <div class="kpi-body"><div class="kpi-label">Gross</div><div class="kpi-value" id="mRevenue">—</div><div class="kpi-sub">This month total</div></div>
-  </div>
-  <div class="kpi-card is-items">
-    <span class="kpi-icon"><i class="fas fa-box"></i></span>
-    <div class="kpi-body"><div class="kpi-label">Items Sold</div><div class="kpi-value" id="mItems">—</div><div class="kpi-sub">Units this month</div></div>
+    <div class="kpi-body"><div class="kpi-label">Gross</div><div class="kpi-value" id="mRevenue">—</div><div class="kpi-sub kpi-period">This month total</div></div>
   </div>
   <div class="kpi-card is-alert">
-    <span class="kpi-icon"><i class="fas fa-triangle-exclamation"></i></span>
-    <div class="kpi-body"><div class="kpi-label">Low Stock</div><div class="kpi-value" id="mLowStock">—</div><div class="kpi-sub">Need restocking</div></div>
+    <span class="kpi-icon"><i class="fas fa-tags"></i></span>
+    <div class="kpi-body"><div class="kpi-label">Discounts</div><div class="kpi-value" id="mDiscount">—</div><div class="kpi-sub" id="mDiscountSub">Total given</div></div>
+  </div>
+  <div class="kpi-card is-items">
+    <span class="kpi-icon"><i class="fas fa-ticket"></i></span>
+    <div class="kpi-body"><div class="kpi-label">Vouchers</div><div class="kpi-value" id="mVoucher">—</div><div class="kpi-sub" id="mVoucherSub">Total redeemed</div></div>
   </div>
 </div>
 
@@ -192,6 +200,7 @@
     <button class="tab-btn" data-tab="monthly"><i class="fas fa-chart-line"></i> Monthly</button>
     <button class="tab-btn" data-tab="payment"><i class="fas fa-credit-card"></i> Payment</button>
     <button class="tab-btn" data-tab="category"><i class="fas fa-boxes-stacked"></i> Categories</button>
+    <button class="tab-btn" data-tab="discount"><i class="fas fa-tags"></i> Discounts</button>
     @if ($hasVouchers)
       <button class="tab-btn" data-tab="voucher"><i class="fas fa-ticket"></i> Vouchers</button>
     @endif
@@ -200,8 +209,8 @@
   {{-- TOP PRODUCTS --}}
   <div id="tab-top" class="tab-pane active">
     <div class="fc-grid-2">
-      <div><h3 class="pane-title">Top Products This Month</h3><div class="chart-wrap"><canvas id="chartTopMonth"></canvas></div></div>
-      <div><h3 class="pane-title">All-Time Top Products</h3><div class="chart-wrap"><canvas id="chartTopAll"></canvas></div></div>
+      <div><h3 class="pane-title">Top Tickets This Month</h3><div class="chart-wrap"><canvas id="chartTopMonth"></canvas></div></div>
+      <div><h3 class="pane-title">All-Time Top Tickets</h3><div class="chart-wrap"><canvas id="chartTopAll"></canvas></div></div>
     </div>
     <div id="topTable" class="loading"><i class="fas fa-spinner"></i><br>Loading…</div>
   </div>
@@ -261,6 +270,22 @@
     <div id="categoryTable" class="loading"><i class="fas fa-spinner"></i><br>Loading…</div>
   </div>
 
+  {{-- DISCOUNTS --}}
+  <div id="tab-discount" class="tab-pane">
+    <div class="info-note"><strong>How this works:</strong> Total discounts given on completed {{ $zone }} transactions, grouped by discount type. Follows the date and payment filters (defaults to this month). Use the <strong>Discount Type</strong> filter above to focus on one type, then press Apply.</div>
+    <div class="kpi-strip cols-3">
+      <div class="kpi-card is-alert"><span class="kpi-icon"><i class="fas fa-tags"></i></span><div class="kpi-body"><div class="kpi-label">Total Discounts</div><div class="kpi-value" id="dTotal">—</div><div class="kpi-sub">Deducted from sales</div></div></div>
+      <div class="kpi-card"><span class="kpi-icon"><i class="fas fa-receipt"></i></span><div class="kpi-body"><div class="kpi-label">Discounted Transactions</div><div class="kpi-value" id="dCount">—</div><div class="kpi-sub">With a discount applied</div></div></div>
+      <div class="kpi-card is-revenue"><span class="kpi-icon"><i class="fas fa-percent"></i></span><div class="kpi-body"><div class="kpi-label">Share of Gross</div><div class="kpi-value" id="dShare">—</div><div class="kpi-sub">Discount vs. gross</div></div></div>
+    </div>
+    <div class="fc-grid-2">
+      <div><h3 class="pane-title">Discount Amount by Type</h3><div class="chart-wrap"><canvas id="chartDiscount"></canvas></div></div>
+      <div><h3 class="pane-title">Breakdown</h3><div id="discountBars" class="loading"><i class="fas fa-spinner"></i><br>Loading…</div></div>
+    </div>
+    <h3 class="pane-title" style="margin-top:8px">Discount Details</h3>
+    <div id="discountTable" class="loading"><i class="fas fa-spinner"></i><br>Loading…</div>
+  </div>
+
   {{-- VOUCHERS (hidden for zones without vouchers, e.g. Snackbar) --}}
   @if ($hasVouchers)
   <div id="tab-voucher" class="tab-pane">
@@ -306,10 +331,12 @@
       const from = document.getElementById('fDateFrom').value;
       const to   = document.getElementById('fDateTo').value;
       const pay  = document.getElementById('fPayment').value;
+      const disc = document.getElementById('fDiscount').value;
       const params = new URLSearchParams();
       if (from) params.set('date_from', from);
       if (to)   params.set('date_to', to);
-      if (pay && pay !== 'all') params.set('payment_method', pay);
+      if (pay && pay !== 'all')   params.set('payment_method', pay);
+      if (disc && disc !== 'all') params.set('discount_type', disc);
       const qs = params.toString();
       return qs ? ('?' + qs) : '';
   }
@@ -361,13 +388,29 @@
   });
 
   /* SUMMARY */
+  function hasDateFilter() {
+      return !!(document.getElementById('fDateFrom').value || document.getElementById('fDateTo').value);
+  }
+
   async function loadSummary() {
       try {
           const d = await apiFetch('/summary', true);
+          const period = hasDateFilter() ? 'Selected period' : 'This month';
+          document.querySelectorAll('.kpi-period').forEach((el, i) => {
+              el.textContent = period + (i === 0 ? ', completed' : ' total');
+          });
+
           document.getElementById('mTxn').textContent      = Number(d.total_txn || 0).toLocaleString();
           document.getElementById('mRevenue').textContent  = peso(d.total_revenue);
-          document.getElementById('mItems').textContent    = Number(d.total_items_sold || 0).toLocaleString();
-          document.getElementById('mLowStock').textContent = d.low_stock_count;
+
+          document.getElementById('mDiscount').textContent = peso(d.total_discounts);
+          document.getElementById('mDiscountSub').textContent =
+              Number(d.discount_txn_count || 0).toLocaleString() + ' discounted txn' + (d.discount_txn_count === 1 ? '' : 's') + ' · ' + period.toLowerCase();
+
+          document.getElementById('mVoucher').textContent = peso(d.total_voucher_amount);
+          document.getElementById('mVoucherSub').textContent = HAS_VOUCHERS
+              ? Number(d.total_voucher_count || 0).toLocaleString() + ' redeemed · ' + period.toLowerCase()
+              : 'No vouchers for this zone';
       } catch(e) { console.error('Summary error', e); }
   }
 
@@ -376,25 +419,30 @@
       const div = document.getElementById('topTable');
       try {
           const d = await apiFetch('/top_products', true);
-          const tm = d.this_month.slice(0, 8);
+          const tm = (d.chart_this_month || []).slice(0, 8);
           makeChart('chartTopMonth', 'bar', tm.map(r => r.product_name),
               [{ label: 'Units Sold', data: tm.map(r => r.total_qty), backgroundColor: PRIMARY, borderRadius: 6 }], { legend: false });
-          const at = d.all_time.slice(0, 8);
+          const at = (d.chart_all_time || []).slice(0, 8);
           makeChart('chartTopAll', 'bar', at.map(r => r.product_name),
               [{ label: 'Units Sold', data: at.map(r => r.total_qty), backgroundColor: ACCENT, borderRadius: 6 }], { legend: false });
           if (!d.this_month.length) {
               div.innerHTML = '<div class="error-msg">No sales data this month yet.</div>';
               return;
           }
+          const t = d.this_month_totals || { total_qty: 0, total_revenue: 0 };
           div.innerHTML = `
           <h3 class="pane-title">This Month Details</h3>
           <div class="table-scroll"><table class="ml-table">
-            <thead><tr><th>#</th><th>Product</th><th>Category</th><th>Units Sold</th><th>Revenue</th></tr></thead>
+            <thead><tr><th>#</th><th>Product</th><th>Category</th><th>Units Sold</th><th>Gross</th></tr></thead>
             <tbody>
               ${d.this_month.map((r,i) => `
               <tr><td>${i+1}</td><td><strong>${r.product_name}</strong></td><td>${r.category_name}</td>
                   <td>${Number(r.total_qty).toLocaleString()}</td><td>${peso(r.total_revenue)}</td></tr>`).join('')}
             </tbody>
+            <tfoot>
+              <tr><td></td><td>TOTAL</td><td></td>
+                  <td>${Number(t.total_qty).toLocaleString()}</td><td>${peso(t.total_revenue)}</td></tr>
+            </tfoot>
           </table></div>`;
       } catch(e) {
           div.innerHTML = `<div class="error-msg">Could not load data.<br><small>${e}</small></div>`;
@@ -659,6 +707,70 @@
       }
   }
 
+  /* DISCOUNTS */
+  async function loadDiscounts() {
+      const barsDiv  = document.getElementById('discountBars');
+      const tableDiv = document.getElementById('discountTable');
+      try {
+          const d = await apiFetch('/discount_summary', true);
+          const types = d.by_type || [];
+
+          document.getElementById('dTotal').textContent = peso(d.total_discount);
+          document.getElementById('dCount').textContent = Number(d.total_transactions || 0).toLocaleString();
+          document.getElementById('dShare').textContent = (d.percent_of_gross || 0) + '%';
+
+          // Fill the Discount Type filter once
+          const select = document.getElementById('fDiscount');
+          if (select.options.length <= 1) {
+              types.forEach(t => {
+                  const opt = document.createElement('option');
+                  opt.value = t.discount_type;
+                  opt.textContent = t.discount_type;
+                  select.appendChild(opt);
+              });
+          }
+
+          if (!types.length) {
+              barsDiv.innerHTML  = '<div class="error-msg">No discounts in this period.</div>';
+              tableDiv.innerHTML = '';
+              makeChart('chartDiscount', 'doughnut', [], []);
+              return;
+          }
+
+          makeChart('chartDiscount', 'doughnut',
+              types.map(t => t.discount_type),
+              [{ data: types.map(t => t.total_discount), backgroundColor: COLORS, borderWidth: 2, borderColor: '#fff', hoverOffset: 6 }],
+              { legend: true, extra: { cutout: '66%' } }
+          );
+
+          barsDiv.innerHTML = types.map(t => `
+            <div class="pct-row">
+              <div class="pct-label">${t.discount_type}</div>
+              <div class="pct-track"><div class="pct-fill" style="width:${t.percentage}%"><span>${peso(t.total_discount)}</span></div></div>
+              <div class="pct-value">${t.percentage}%</div>
+            </div>`).join('');
+
+          tableDiv.innerHTML = `
+            <div class="table-scroll"><table class="ml-table">
+              <thead><tr><th>#</th><th>Discount Type</th><th>Transactions</th><th>Total Discount</th><th>% of Discounts</th></tr></thead>
+              <tbody>
+                ${types.map((t,i) => `
+                <tr><td>${i+1}</td><td><strong>${t.discount_type}</strong></td>
+                    <td>${Number(t.num_transactions).toLocaleString()}</td>
+                    <td>${peso(t.total_discount)}</td><td>${t.percentage}%</td></tr>`).join('')}
+              </tbody>
+              <tfoot>
+                <tr><td></td><td>TOTAL</td>
+                    <td>${Number(d.total_transactions).toLocaleString()}</td>
+                    <td>${peso(d.total_discount)}</td><td>100%</td></tr>
+              </tfoot>
+            </table></div>`;
+      } catch(e) {
+          barsDiv.innerHTML  = `<div class="error-msg">Could not load discount data.<br><small>${e}</small></div>`;
+          tableDiv.innerHTML = '';
+      }
+  }
+
   /* VOUCHERS (only runs when the zone has vouchers) */
   async function loadVouchers() {
       const tbl = document.getElementById('voucherTable');
@@ -689,7 +801,11 @@
               <tbody>${items.map((r,i) => `
                 <tr><td>${i+1}</td><td><strong>${r.name}</strong></td>
                 <td>${Number(r.vouchers).toLocaleString()}</td><td>${peso(r.total_amount)}</td></tr>`).join('')}
-              </tbody></table></div>`
+              </tbody>
+              <tfoot>
+                <tr><td></td><td>TOTAL</td>
+                    <td>${Number(d.total_vouchers).toLocaleString()}</td><td>${peso(d.total_amount)}</td></tr>
+              </tfoot></table></div>`
             : '<div class="error-msg">No voucher redemptions in this period.</div>';
       } catch(e) {
           tbl.innerHTML = `<div class="error-msg">Could not load voucher data.<br><small>${e}</small></div>`;
@@ -699,7 +815,7 @@
 
   /* FILTER CONTROLS */
   function reloadFilteredData() {
-      loadSummary(); loadTopProducts(); loadPaymentBreakdown(); loadCategoryBreakdown();
+      loadSummary(); loadTopProducts(); loadPaymentBreakdown(); loadCategoryBreakdown(); loadDiscounts();
       if (HAS_VOUCHERS) loadVouchers();
   }
   document.getElementById('applyFilters').addEventListener('click', reloadFilteredData);
@@ -707,6 +823,7 @@
       document.getElementById('fDateFrom').value = '';
       document.getElementById('fDateTo').value = '';
       document.getElementById('fPayment').value = 'all';
+      document.getElementById('fDiscount').value = 'all';
       reloadFilteredData();
   });
   document.getElementById('downloadReport').addEventListener('click', () => {
@@ -716,7 +833,7 @@
   /* BOOT — each loader runs independently so one failure can't block the rest */
   const bootLoaders = [
       loadSummary, loadTopProducts, loadDayOfWeek, loadHourly, loadForecast,
-      loadMonthly, loadPaymentBreakdown, loadCategoryBreakdown
+      loadMonthly, loadPaymentBreakdown, loadCategoryBreakdown, loadDiscounts
   ];
   if (HAS_VOUCHERS) bootLoaders.push(loadVouchers);
 

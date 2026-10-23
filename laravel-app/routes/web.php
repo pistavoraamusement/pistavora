@@ -324,6 +324,7 @@ Route::middleware(['auth.session', 'role:tl,manager,admin'])->group(function () 
         ->defaults('zone', 'Skataya')->name('zone.rollerFever');
     Route::get("/{$zonePaths['dinoAdventure']}", [ZoneForecastController::class, 'index'])
         ->defaults('zone', 'Dinolakbay')->name('zone.dinoAdventure');
+        Route::get('/api/zone-forecast/{zone}/discount_summary', [ZoneForecastController::class, 'discountSummary']);
 });
 
 /*

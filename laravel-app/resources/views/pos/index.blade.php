@@ -723,13 +723,24 @@
             <h3><i class="ti ti-id-badge-2"></i> PWD / Senior Citizen Discount</h3>
             <p style="font-size:12px;color:var(--text-secondary);margin-bottom:10px">
                 Select the item(s) covered by this ID, then enter the holder's details.
-                (20% discount + 12% VAT exemption per RA 9994 / RA 10754)
+                (Selected % discount + 12% VAT exemption, applies to 1 pc per selected item)
             </p>
             <div class="form-group">
                 <label>Discount Type</label>
                 <select id="pwdSeniorType" class="form-control">
                     <option value="Senior Citizen">Senior Citizen</option>
                     <option value="PWD">PWD</option>
+                    <option value="PWD">Seasons</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Discount Rate</label>
+                <select id="pwdSeniorRate" class="form-control">
+                    <option value="10">10%</option>
+                    <option value="20" selected>20%</option>
+                    <option value="30">30%</option>
+                    <option value="40">40%</option>
+                    <option value="50">50%</option>
                 </select>
             </div>
             <div class="form-group">

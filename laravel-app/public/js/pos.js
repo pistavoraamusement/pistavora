@@ -89,9 +89,9 @@ document.addEventListener('DOMContentLoaded', () => {
   switchMode('skates');
   updateDateTime();
   setInterval(updateDateTime, 30000);
-  checkCutoffStatus(); 
+  checkCutoffStatus();
 
-  const saved = localStorage.getItem(storageKey('pos_cart')); 
+  const saved = localStorage.getItem(storageKey('pos_cart'));
   if (saved) {
     try {
       cart = JSON.parse(saved);
@@ -166,15 +166,6 @@ function switchMode(mode) {
     if (prodGridDino) prodGridDino.style.display = '';
     currentCategory = 'all';
   }
- else {
-  filtered = phpProducts.filter(p => {
-    const inZone   = (p.zone || '') === ZONE_SNACKBAR; 
-    const inCat    = CATEGORIES_SNACKBAR.includes((p.category || '').toLowerCase());
-    const matchCat = currentCategory === 'all' ? true : p.category === currentCategory;
-    const matchQ   = p.name.toLowerCase().includes(query);
-    return inZone && inCat && matchCat && matchQ;
-  });
-}
 
   renderProducts();
 }
@@ -292,8 +283,11 @@ function renderProducts() {
     `;
   }).join('');
 }
+
 // ============================================================
 //  PWD / SENIOR CITIZEN DISCOUNT
+//  Rate is selectable (10/20/30/40/50%). Only 1 unit per tagged
+//  item is covered, no matter the quantity bought.
 // ============================================================
 function openPwdSeniorDiscount() {
   if (cart.length === 0) {
@@ -310,6 +304,7 @@ function openPwdSeniorDiscount() {
   document.getElementById('pwdSeniorType').value   = specialDiscount?.type || 'Senior Citizen';
   document.getElementById('pwdSeniorName').value   = specialDiscount?.name || '';
   document.getElementById('pwdSeniorIdNum').value  = specialDiscount?.idNumber || '';
+  document.getElementById('pwdSeniorRate').value   = specialDiscount?.rate || 20;
   document.getElementById('pwdSeniorError').textContent = '';
 
   const list = document.getElementById('pwdSeniorItemsList');
@@ -337,6 +332,7 @@ function confirmPwdSeniorDiscount() {
   const name    = document.getElementById('pwdSeniorName').value.trim();
   const idNum   = document.getElementById('pwdSeniorIdNum').value.trim();
   const type    = document.getElementById('pwdSeniorType').value;
+  const rate    = parseFloat(document.getElementById('pwdSeniorRate').value) || 20;
   const checked = Array.from(document.querySelectorAll('.pwd-item-check:checked')).map(c => parseInt(c.value));
 
   if (!name) {
@@ -347,12 +343,16 @@ function confirmPwdSeniorDiscount() {
     document.getElementById('pwdSeniorError').textContent = 'Please enter the ID number.';
     return;
   }
+  if (![10, 20, 30, 40, 50].includes(rate)) {
+    document.getElementById('pwdSeniorError').textContent = 'Please select a valid discount rate.';
+    return;
+  }
   if (checked.length === 0) {
     document.getElementById('pwdSeniorError').textContent = 'Please select at least one item.';
     return;
   }
 
-  specialDiscount = { type, name, idNumber: idNum, itemIds: checked };
+  specialDiscount = { type, name, idNumber: idNum, itemIds: checked, rate };
   closeModal('pwdSeniorModal');
   updateTotals();
 }
@@ -476,6 +476,7 @@ function startFreshTransaction() {
   discountType    = 'percent';
   pendingTendered = 0;
   activePendingId = null;
+  specialDiscount = null;
 
   document.getElementById('custName').value = '';
   document.querySelectorAll('.qs-pill').forEach((p, i) => p.classList.toggle('active', i === 0));
@@ -485,7 +486,6 @@ function startFreshTransaction() {
 
   renderCart();
   updateTotals();
-  // FIX: dapat storageKey() ang gamit, kapareho ng persistCart()
   localStorage.removeItem(storageKey('pos_cart'));
 }
 
@@ -544,9 +544,8 @@ function addToCart(id) {
   persistCart();
 }
 
-// FIX: Hindi na pwedeng bumaba sa 1 ang qty gamit ang "−" button.
-// Kapag aabot sa 0, dadaan sa manager authorization (removeItem) —
-// hindi na basta-basta mawawala ang item sa cart.
+// Quantity can never go below 1 via the "−" button.
+// To remove an item, use the X button or Correction (both need manager approval).
 function changeQty(id, delta) {
   // Hindi pwedeng baguhin ang qty ng voucher line
   if (cart.some(c => c.voucher)) return;
@@ -554,8 +553,6 @@ function changeQty(id, delta) {
   const item = cart.find(c => c.id == id);
   if (!item) return;
 
-  // Quantity can never go below 1 via the "−" button.
-  // To remove an item, use the X button or Correction (both need manager approval).
   if (item.qty + delta < 1) return;
 
   const product = phpProducts.find(p => p.id == id);
@@ -638,8 +635,11 @@ function calcTotals() {
     }
   });
 
-  const specialNetOfVat     = specialGrossVatIncl / (1 + TAX_RATE);
-  const specialDiscountAmt  = specialNetOfVat * 0.20;
+  // Selected rate (10/20/30/40/50%), default 20%
+  const specialRate = specialDiscount ? (specialDiscount.rate || 20) / 100 : 0;
+
+  const specialNetOfVat      = specialGrossVatIncl / (1 + TAX_RATE);
+  const specialDiscountAmt   = specialNetOfVat * specialRate;
   const specialAfterDiscount = specialNetOfVat - specialDiscountAmt;
 
   let genericDiscountAmt = 0;
@@ -885,6 +885,7 @@ function processCheckout(refNumber = null) {
     manual_discount:  t.genericDiscountAmt.toFixed(2),
     special_discount: t.specialDiscountAmt.toFixed(2),
     special_type:     specialDiscount ? specialDiscount.type : null,
+    special_rate:     specialDiscount ? specialDiscount.rate : null,
     discount_mode:    discountType,
     discount_value:   discountValue,
     items:            cart
@@ -995,7 +996,8 @@ function showReceipt(invNum, custName, gross, vatAmount, total, refNumber = null
   document.getElementById('rCust').textContent         = custName || 'Walk-in Customer';
 
   if (specialDiscount) {
-    document.getElementById('rCust').textContent += ` (${specialDiscount.type}: ${specialDiscount.name}, ID# ${specialDiscount.idNumber})`;
+    document.getElementById('rCust').textContent +=
+      ` (${specialDiscount.type} ${specialDiscount.rate || 20}%: ${specialDiscount.name}, ID# ${specialDiscount.idNumber})`;
   }
 
   document.getElementById('rServiceLabel').textContent = selectedService.toUpperCase();
@@ -1066,7 +1068,7 @@ function resetAfterCheckout() {
 
   renderCart();
   updateTotals();
-  localStorage.removeItem(storageKey('pos_cart')); 
+  localStorage.removeItem(storageKey('pos_cart'));
   document.getElementById('invNum').textContent = String(currentInvoice).padStart(11, '0');
 }
 
@@ -1093,6 +1095,7 @@ function removeDiscount() {
   if (discInput) discInput.value = '';
   updateTotals();
 }
+
 // ===== CASHFLOW =====
 function openCashflow() {
   document.getElementById('cashflowModal').classList.add('show');
@@ -1296,7 +1299,7 @@ function renderSalesReport(res, isPreview, isReprint = false) {
 }
 
 function buildReportFooter(authorizedBy, voidCount, voidTotal, isPreview, voidedTxnCount = 0, voidedTxnTotal = 0) {
-  return `  
+  return `
     <div class="report-receipt" style="border-top:2px dashed #ccc;margin-top:6px;padding-top:6px;">
       <div class="receipt-vat-section">
         <div class="vat-row"><span>Voided Item(s)</span><span>${voidCount}</span></div>
@@ -1424,7 +1427,7 @@ function confirmAuth() {
         document.getElementById('reprintModal').classList.add('show');
         setTimeout(() => document.getElementById('reprintInvInput').focus(), 100);
 
-      } else if (pendingAction === 'correction') {          // FIX: dating wala ito kaya walang nangyayari
+      } else if (pendingAction === 'correction') {
         pendingAction = null;
         showCorrectionModal();
 
@@ -1605,7 +1608,7 @@ function confirmReprint() {
 
 
 function showReprintedReceipt(t) {
-  
+
   document.getElementById('rVoidedBanner').style.display  = 'none';
   document.getElementById('rVoidedDetails').style.display = 'none';
   document.getElementById('voidedCloseBtn').style.display = 'none';
@@ -1700,6 +1703,7 @@ function persistCart() {
     console.warn('Could not persist cart:', e);
   }
 }
+
 // ===== DAY LOCK (cut-off) =====
 let dayLocked = false;
 
@@ -1728,6 +1732,7 @@ function applyDayLock(locked, message) {
     coBtn.style.cursor  = dayLocked ? 'not-allowed' : '';
   }
 }
+
 // ============================================================
 //  KEYBOARD SHORTCUTS — Options / Reports / Checkout
 // ============================================================
@@ -1779,7 +1784,7 @@ function openVoidTransaction() {
 function lookupVoidTransaction() {
   const raw    = document.getElementById('voidTxnInvInput').value.trim();
   const reason = document.getElementById('voidTxnReason').value.trim();
- 
+
   if (!raw) {
     document.getElementById('voidTxnError').textContent = 'Please enter an invoice number.';
     return;
@@ -1788,15 +1793,15 @@ function lookupVoidTransaction() {
     document.getElementById('voidTxnError').textContent = 'Please enter a reason for the void.';
     return;
   }
- 
+
   const invNum = raw.padStart(11, '0');
   document.getElementById('voidTxnError').textContent = '';
- 
+
   const btn = document.getElementById('voidTxnLookupBtn');
   btn.disabled  = true;
   btn.innerHTML = '<i class="ti ti-loader"></i> Looking up...';
   showLoading('Looking up invoice…');
- 
+
   // purpose=void: para hindi mabilang na "reprint" sa system log ang lookup na ito
   fetch('/pos/get_transaction?purpose=void&invoice=' + encodeURIComponent(invNum), {
     headers: {
@@ -1825,12 +1830,12 @@ function lookupVoidTransaction() {
       btn.disabled  = false;
       btn.innerHTML = '<i class="ti ti-search"></i> Find Transaction';
       hideLoading();
- 
+
       if (!res.success) {
         document.getElementById('voidTxnError').textContent = res.message || 'Invoice not found.';
         return;
       }
- 
+
       const t = res.transaction;
       document.getElementById('voidTxnPreview').style.display = '';
       document.getElementById('voidTxnPreview').innerHTML = `
@@ -1840,11 +1845,11 @@ function lookupVoidTransaction() {
         Payment: ${t.payment_method}<br>
         Items: ${(t.items || []).length} item(s)
       `;
- 
+
       // I-store yung invoice number, ipasa sa auth flow
       pendingVoidTxnInvoice = raw.padStart(11, '0');
       pendingAction = 'void_transaction';
- 
+
       document.querySelector('#authModal h3').innerHTML =
         '<i class="ti ti-lock"></i> Admin Authorization — Void Transaction';
       document.getElementById('authUser').value = '';
@@ -1862,7 +1867,7 @@ function lookupVoidTransaction() {
         err.message || 'Something went wrong.';
     });
 }
- 
+
 function confirmVoidTransaction(authorizedBy) {
   const reason = document.getElementById('voidTxnReason').value.trim();
 
@@ -1875,8 +1880,8 @@ function confirmVoidTransaction(authorizedBy) {
     method: 'POST',
     headers: {
       'Content-Type':     'application/json',
-      'Accept':            'application/json',   
-      'X-Requested-With':  'XMLHttpRequest',      
+      'Accept':            'application/json',
+      'X-Requested-With':  'XMLHttpRequest',
       'X-CSRF-TOKEN':      document.querySelector('meta[name="csrf-token"]').getAttribute('content')
     },
     body: JSON.stringify({

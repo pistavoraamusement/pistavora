@@ -2,118 +2,91 @@
 
 @section('title', 'Reservation and Bookings')
 
-@push('head')
-    <link
-        href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap"
-        rel="stylesheet">
-@endpush
-
 @section('styles')
+    @include('partials.ui-theme')
     <style>
         :root {
-            /* status colors (page only) */
-            --confirmed: #0F9D8A;
-            --confirmed-text: #0B7C6D;
-            --confirmed-soft: #E6F6F3;
-            --pending: #B7791F;
-            --pending-soft: #FEF4E0;
-            --paid: #2563EB;
-            --paid-soft: #E8F0FE;
-            --cancelled: #DC2650;
-            --cancelled-soft: #FDE8ED;
-            --text-sub: #625C70;
-            --text-faint: #9A94A8;
+            /* Reservation status colors, mapped to the layout's tokens */
+            --confirmed: var(--present);
+            --confirmed-text: var(--green);
+            --confirmed-soft: var(--present-soft);
+            --pending: var(--amber);
+            --pending-soft: var(--amber-light);
+            --paid: var(--sky);
+            --paid-soft: var(--sky-soft);
+            --cancelled: var(--danger);
+            --cancelled-soft: var(--danger-soft);
+            --text-sub: var(--ink-soft);
+            --text-faint: var(--muted);
 
             --r-sm: 8px;
             --r-md: 10px;
             --r-lg: 14px;
         }
 
-        .serif { font-family: 'Source Serif 4', serif; }
-
-        /* ===== TOOLBAR ===== */
-        .toolbar {
+        /* ===== SUMMARY STAT CARDS ===== */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .stat-card {
             background: var(--card);
             border: 1px solid var(--line);
-            padding: 20px 24px;
-            margin-bottom: 16px;
-            border-radius: var(--r-lg);
+            border-radius: 20px;
+            padding: 22px 24px;
             box-shadow: var(--shadow-sm);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 16px;
+        }
+        .stat-label {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: var(--text-sub);
+        }
+        .stat-value {
+            font-size: 34px;
+            font-weight: 600;
+            line-height: 1.15;
+            margin-top: 8px;
+            color: var(--ink);
+        }
+        .stat-note {
+            font-size: 13px;
+            color: var(--text-sub);
+            margin-top: 2px;
+        }
+        .stat-card.is-highlight .stat-value { color: var(--pending); }
+
+        @media (max-width: 1100px) {
+            .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (max-width: 520px) {
+            .stat-grid { grid-template-columns: 1fr; gap: 12px; }
+            .stat-card { padding: 18px 20px; }
+            .stat-value { font-size: 30px; }
         }
 
-        .toolbar .eyebrow { font-size: .68rem; font-weight: 700; color: var(--pink-deep); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 4px; }
-        .toolbar h2 { font-family: 'Source Serif 4', serif; font-size: 1.45rem; font-weight: 700; color: var(--ink); line-height: 1.2; }
-        .toolbar p.sub { font-size: .8rem; color: var(--text-sub); margin-top: 4px; }
-        .toolbar-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-
-        /* ===== FILTER BAR ===== */
-        .filter-bar {
+        /* ===== FILTER BAR (standalone card on this page) ===== */
+        .filter-card {
             background: var(--card);
             border: 1px solid var(--line);
             padding: 14px 20px;
-            margin-bottom: 16px;
-            border-radius: var(--r-lg);
+            border-radius: 16px;
             box-shadow: var(--shadow-sm);
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            align-items: center;
+            border-bottom: 1px solid var(--line);
         }
-
-        .filter-bar .search-wrap { position: relative; flex: 1; min-width: 220px; }
-        .filter-bar .search-wrap i { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 12.5px; pointer-events: none; }
-
-        .filter-bar input[type="text"],
-        .filter-bar select {
-            height: 40px;
-            border: 1px solid var(--line-strong);
-            border-radius: var(--r-md);
-            font-size: 13px;
-            font-family: 'Inter', sans-serif;
-            color: var(--ink);
-            background: #fff;
-            transition: border-color .15s, box-shadow .15s;
-        }
-
-        .filter-bar input[type="text"] { width: 100%; padding: 0 12px 0 36px; }
-        .filter-bar select { padding: 0 12px; cursor: pointer; }
-
-        .filter-bar input[type="text"]:focus,
-        .filter-bar select:focus { outline: none; border-color: var(--pink); box-shadow: 0 0 0 3px var(--pink-light); }
-
-        .filter-clear {
-            height: 40px;
-            padding: 0 16px;
-            background: #fff;
-            color: var(--ink-soft);
-            border: 1px solid var(--line-strong);
-            border-radius: var(--r-md);
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 12.5px;
-            font-family: 'Inter', sans-serif;
-            white-space: nowrap;
-            transition: .15s;
-        }
-
-        .filter-clear:hover { background: var(--pink-pale); border-color: var(--pink); color: var(--pink-deep); }
+        .filter-card .search-wrap { position: relative; flex: 1; min-width: 220px; }
+        .filter-card .search-wrap i { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 12.5px; pointer-events: none; }
+        .filter-card input[type="text"],
+        .filter-card select { height: 40px; background: #fff; color: var(--ink); }
+        .filter-card input[type="text"] { width: 100%; max-width: none; padding: 0 12px 0 36px; }
+        .filter-card select { padding: 0 12px; }
         .filter-count { font-size: 12px; color: var(--text-sub); white-space: nowrap; }
 
         /* ===== TABLE BOX ===== */
-        .table-box {
-            background: var(--card);
-            border: 1px solid var(--line);
-            padding: 0;
-            border-radius: var(--r-lg);
-            box-shadow: var(--shadow-sm);
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
+        .table-box.res-box { padding: 0; border: 1px solid var(--line); }
 
         .sample-note {
             font-size: .78rem;
@@ -125,43 +98,11 @@
         }
 
         /* Fixed layout + colgroup widths = every row lines up, nothing wraps */
-        table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            table-layout: fixed;
-            min-width: 1000px;
-            font-size: 13px;
-        }
-
-        th, td {
-            padding: 12px 16px;
-            text-align: left;
-            border-bottom: 1px solid var(--line);
-            vertical-align: middle;
-        }
-
-        thead tr th {
-            background: #F7F7FA;
-            color: var(--text-sub);
-            font-weight: 700;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: .06em;
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--line-strong);
-            white-space: nowrap;
-        }
-
-        thead tr th:first-child { border-top-left-radius: var(--r-lg); }
-        thead tr th:last-child { border-top-right-radius: var(--r-lg); }
-
-        tbody tr { transition: background .12s; }
-        tbody tr:hover { background: #FAFAFC; }
-        tbody tr:last-child td { border-bottom: none; }
-        tbody tr.clickable-row { cursor: pointer; }
-
-        td { color: var(--ink-soft); overflow: hidden; }
+        .res-table { table-layout: fixed; min-width: 1000px; font-size: 13px; }
+        .res-table th, .res-table td { padding: 12px 16px; }
+        .res-table td { overflow: hidden; }
+        .res-table tbody tr:last-child td { border-bottom: none; }
+        .res-table tbody tr.clickable-row { cursor: pointer; }
 
         /* two-line cell pattern: main value on top, supporting detail below */
         .cell-main { font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -173,24 +114,10 @@
         .sub-ok { color: var(--confirmed-text); }
         .sub-bad { color: var(--cancelled); }
 
-        /* ===== BADGES ===== */
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            height: 24px;
-            padding: 0 11px;
-            border-radius: 999px;
-            font-size: 11.5px;
-            font-weight: 700;
-            letter-spacing: .02em;
-            white-space: nowrap;
-        }
-
+        /* ===== BADGES (extend the shared .badge) ===== */
         .badge-paid { background: var(--paid-soft); color: var(--paid); }
-        .badge-done { background: var(--paid-soft); color: var(--paid); gap: 6px; }
-
-        /* Done badge shown in the Status column (replaces the dropdown once voucher is punched) */
-        .badge-done-status { height: 30px; padding: 0 14px; font-size: 12px; }
+        .badge-done { background: var(--paid-soft); color: var(--paid); display: inline-flex; align-items: center; gap: 6px; }
+        .badge-done-status { padding: 6px 14px; font-size: 12px; }
 
         /* ===== STATUS DROPDOWN ===== */
         .status-select {
@@ -204,17 +131,14 @@
             font-weight: 700;
             text-transform: capitalize;
             letter-spacing: .02em;
-            font-family: 'Inter', sans-serif;
             cursor: pointer;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23635C72' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2364748B' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
             background-repeat: no-repeat;
             background-position: right 11px center;
             transition: .15s;
         }
-
         .status-select:focus { outline: none; box-shadow: 0 0 0 3px var(--pink-light); }
         .status-select:disabled { opacity: .6; cursor: not-allowed; }
-
         .status-select[data-status="pending"] { background-color: var(--pending-soft); color: var(--pending); }
         .status-select[data-status="approved"],
         .status-select[data-status="confirmed"] { background-color: var(--confirmed-soft); color: var(--confirmed-text); }
@@ -242,77 +166,31 @@
             font-size: 13px;
             transition: .15s;
         }
-
         .btn-icon-edit:hover { background: var(--paid-soft); border-color: var(--paid); color: var(--paid); }
         .btn-icon-delete:hover { background: var(--cancelled-soft); border-color: var(--cancelled); color: var(--cancelled); }
-
         /* edit is locked once the reservation is Done (voucher already used) */
         .btn-icon-edit:disabled,
         .btn-icon-edit:disabled:hover { opacity: .45; cursor: not-allowed; background: #fff; border-color: var(--line-strong); color: var(--muted); }
-
         .delete-form { display: inline-block; margin: 0; }
 
-        /* ===== PAGINATION ===== */
-        .pagination {
-            display: none;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: center;
-            gap: 6px;
-            padding: 16px 20px;
-            border-top: 1px solid var(--line);
-        }
-
-        .pagination-info { font-size: 12px; color: var(--text-sub); margin-right: 8px; }
-
-        .pagination button {
-            min-width: 32px;
-            height: 32px;
-            padding: 0 10px;
-            border: 1px solid var(--line-strong);
-            background: #fff;
-            color: var(--ink-soft);
-            border-radius: var(--r-sm);
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            font-family: 'Inter', sans-serif;
-            transition: .15s;
-        }
-
-        .pagination button:hover:not(:disabled):not(.active) { background: var(--pink-pale); border-color: var(--pink); color: var(--pink-deep); }
-        .pagination button.active { background: var(--pink-deep); border-color: var(--pink-deep); color: #fff; }
-        .pagination button:disabled { opacity: .4; cursor: not-allowed; }
-
-        #noMatchRow td {
-            padding: 36px !important;
-            color: var(--text-sub) !important;
-            background: var(--card) !important;
-            text-align: center !important;
-            font-weight: 500 !important;
-        }
-
         /* ===== GROUPED CUSTOMER ROWS ===== */
-        tr.group-header { cursor: pointer; background: #FAFAFC; }
+        tr.group-header { cursor: pointer; background: var(--bg); }
         tr.group-header:hover { background: var(--pink-pale); }
         tr.group-header.expanded td { border-bottom-color: var(--pink-light); background: var(--pink-pale); }
-
         .group-name { display: flex; align-items: center; gap: 10px; min-width: 0; }
         .group-name > div { min-width: 0; }
         .group-chevron { width: 10px; flex-shrink: 0; color: var(--pink-deep); font-size: 11px; transition: transform .15s ease; }
-
         .group-summary-cell { color: var(--text-sub) !important; font-weight: 500; }
         .group-hint { color: var(--text-sub) !important; font-size: 12px; }
 
         .badge-pending-mini {
             display: inline-flex;
             align-items: center;
-            height: 24px;
             background: var(--pending-soft);
             color: var(--pending);
             font-size: 11.5px;
             font-weight: 700;
-            padding: 0 11px;
+            padding: 4px 11px;
             border-radius: 999px;
             white-space: nowrap;
         }
@@ -321,126 +199,26 @@
         tr.detail-row td { background: #fff; }
         tr.detail-row td:first-child { padding-left: 36px; box-shadow: inset 3px 0 0 var(--pink-light); }
 
-        /* ===== BUTTONS ===== */
-        .btn-primary,
-        .btn-danger,
-        .btn-ghost {
-            height: 40px;
-            padding: 0 18px;
-            border-radius: var(--r-md);
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 600;
-            font-family: 'Inter', sans-serif;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            white-space: nowrap;
-            transition: background .15s ease, box-shadow .15s ease, border-color .15s ease;
+        /* ===== HIGHLIGHTED ROW (opened from the Visitors page) ===== */
+        .res-table tbody tr.row-highlight td {
+            background: var(--pink-pale);
+            border-bottom-color: var(--pink-light);
+            animation: rowFlash 1.4s ease-in-out 3;
         }
-
-        .btn-primary { background: var(--pink-deep); color: #fff; border: none; }
-        .btn-primary:hover { background: var(--pink-dark); box-shadow: 0 0 0 3px var(--pink-light); }
-        .btn-danger { background: var(--cancelled); color: #fff; border: none; }
-        .btn-danger:hover { filter: brightness(.92); box-shadow: 0 0 0 3px var(--cancelled-soft); }
-        .btn-ghost { background: #fff; color: var(--ink); border: 1px solid var(--line-strong); }
-        .btn-ghost:hover { background: var(--bg); border-color: var(--pink); }
+        .res-table tbody tr.row-highlight td:first-child {
+            box-shadow: inset 5px 0 0 var(--pink-deep);
+        }
+        @keyframes rowFlash {
+            0%, 100% { background-color: var(--pink-pale); }
+            50%      { background-color: var(--pink-light); }
+        }
 
         /* ===== MODALS ===== */
-        #reservationOverlay,
-        #editReservationOverlay,
-        #confirmOverlay,
-        #receiptOverlay,
-        #rejectOverlay,
-        #voucherOverlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 10000;
-            align-items: center;
-            justify-content: center;
-            background: rgba(20, 16, 30, .5);
-            backdrop-filter: blur(3px);
-            -webkit-backdrop-filter: blur(3px);
-            padding: 20px;
-            animation: overlayFade .2s ease;
-        }
-
-        #reservationOverlay.active,
-        #editReservationOverlay.active,
-        #confirmOverlay.active,
-        #receiptOverlay.active,
-        #rejectOverlay.active,
-        #voucherOverlay.active { display: flex; }
-
-        .modal-card {
-            background: #fff;
-            border-radius: 16px;
-            width: 100%;
-            max-width: 520px;
-            max-height: calc(100vh - 40px);
-            overflow-y: auto;
-            box-shadow: var(--shadow-md);
-            animation: cardPop .22s ease;
-        }
-
-        .modal-head { display: flex; justify-content: space-between; align-items: flex-start; padding: 20px 24px 16px; border-bottom: 1px solid var(--line); }
-        .modal-head .eyebrow { font-size: .66rem; font-weight: 700; color: var(--pink-deep); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 4px; }
-        .modal-head h3 { font-family: 'Source Serif 4', serif; font-size: 1.2rem; font-weight: 700; color: var(--ink); }
-
-        .modal-close {
-            width: 32px;
-            height: 32px;
-            border-radius: var(--r-sm);
-            border: none;
-            background: var(--bg);
-            color: var(--ink-soft);
-            font-size: 14px;
-            cursor: pointer;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: .15s;
-        }
-
-        .modal-close:hover { background: var(--pink-light); color: var(--pink-deep); }
-        .modal-body { padding: 20px 24px; }
-
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-        .form-group { display: flex; flex-direction: column; gap: 6px; }
-        .form-group.full { grid-column: 1 / -1; }
-        .form-group label { font-size: 11.5px; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .04em; }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            padding: 10px 12px;
-            border: 1px solid var(--line-strong);
-            border-radius: var(--r-md);
-            font-size: 13.5px;
-            font-family: 'Inter', sans-serif;
-            color: var(--ink);
-            background: #fff;
-            transition: border-color .15s, box-shadow .15s;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus { outline: none; border-color: var(--pink); box-shadow: 0 0 0 3px var(--pink-light); }
-
-        .form-group textarea { resize: vertical; min-height: 80px; }
-        .form-hint { font-size: 12px; color: var(--text-sub); }
-
-        .modal-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px 22px; border-top: 1px solid var(--line); }
-
-        @keyframes overlayFade { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes cardPop { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        #reservationOverlay .modal-card,
+        #editReservationOverlay .modal-card { max-width: 520px; }
 
         /* ===== REJECT REASON MODAL ===== */
         .reason-list { display: flex; flex-direction: column; gap: 8px; }
-
         .reason-option {
             display: flex;
             align-items: center;
@@ -455,36 +233,30 @@
             cursor: pointer;
             transition: .15s;
         }
-
         .reason-option:hover { border-color: var(--cancelled); background: var(--cancelled-soft); }
         .reason-option input { accent-color: var(--cancelled); width: 16px; height: 16px; flex-shrink: 0; }
         .reason-option:has(input:checked) { border-color: var(--cancelled); background: var(--cancelled-soft); color: var(--cancelled); font-weight: 600; }
 
         #rejectNoteWrap { display: none; margin-top: 12px; }
         #rejectNoteWrap.show { display: block; }
-
         #rejectNoteWrap textarea {
             width: 100%;
             padding: 10px 12px;
             border: 1px solid var(--line-strong);
             border-radius: var(--r-md);
-            font-size: 13.5px;
-            font-family: 'Inter', sans-serif;
+            font-size: 13px;
             color: var(--ink);
             background: #fff;
             resize: vertical;
             min-height: 80px;
         }
-
         #rejectNoteWrap textarea:focus { outline: none; border-color: var(--pink); box-shadow: 0 0 0 3px var(--pink-light); }
-
         .reject-error { display: none; margin-top: 10px; font-size: 12px; color: var(--cancelled); font-weight: 600; }
         .reject-error.show { display: block; }
 
         /* ===== VOUCHER MODAL ===== */
         .voucher-meta { font-size: 12.5px; color: var(--text-sub); margin-bottom: 16px; line-height: 1.6; }
         .voucher-meta strong { color: var(--ink); font-size: 14px; }
-
         .voucher-code-box {
             display: flex;
             align-items: center;
@@ -495,166 +267,40 @@
             border-radius: var(--r-lg);
             padding: 16px 18px;
         }
-
         /* Done = already punched by the cashier, can't be used again */
-        .voucher-code-box.used { background: #F4F4F7; border-color: var(--line-strong); }
-
+        .voucher-code-box.used { background: var(--bg); border-color: var(--line-strong); }
         .voucher-code { font-family: 'Courier New', monospace; font-size: 1.35rem; font-weight: 700; letter-spacing: .12em; color: var(--pink-deep); word-break: break-all; }
-        .voucher-code.empty { font-family: 'Inter', sans-serif; font-size: 13px; letter-spacing: 0; color: var(--text-sub); font-weight: 500; }
+        .voucher-code.empty { font-family: var(--font-sans); font-size: 13px; letter-spacing: 0; color: var(--text-sub); font-weight: 500; }
         .voucher-code.used { color: var(--text-sub); text-decoration: line-through; }
-
         .voucher-note { display: none; margin-top: 12px; padding: 10px 14px; border-radius: var(--r-md); font-size: 12.5px; font-weight: 600; line-height: 1.5; }
         .voucher-note.show { display: block; }
         .voucher-note.note-used { background: var(--paid-soft); color: var(--paid); }
         .voucher-note.note-wait { background: var(--pending-soft); color: var(--pending); }
         .voucher-note.note-rejected { background: var(--cancelled-soft); color: var(--cancelled); }
 
-        /* ===== CONFIRM DELETE MODAL ===== */
-        .confirm-card {
-            background: #fff;
-            border-radius: 16px;
-            width: 100%;
-            max-width: 390px;
-            padding: 28px 26px 22px;
-            text-align: center;
-            box-shadow: var(--shadow-md);
-            animation: cardPop .22s ease;
-        }
-
-        .confirm-icon {
-            width: 54px;
-            height: 54px;
-            border-radius: 50%;
-            margin: 0 auto 16px;
-            background: var(--cancelled-soft);
-            color: var(--cancelled);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 21px;
-        }
-
-        .confirm-card h3 { font-family: 'Source Serif 4', serif; font-size: 1.15rem; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
-        .confirm-card p { font-size: 13.5px; color: var(--ink-soft); line-height: 1.55; margin-bottom: 22px; }
-        .confirm-actions { display: flex; gap: 10px; justify-content: center; }
-
-        .confirm-actions button {
-            flex: 1;
-            height: 42px;
-            padding: 0 18px;
-            border-radius: var(--r-md);
-            font-size: 13.5px;
-            font-weight: 700;
-            font-family: 'Inter', sans-serif;
-            cursor: pointer;
-            transition: .15s;
-            border: none;
-        }
-
-        .btn-confirm-cancel { background: #fff; color: var(--ink-soft); border: 1px solid var(--line-strong) !important; }
-        .btn-confirm-cancel:hover { background: var(--bg); }
-        .btn-confirm-delete { background: var(--cancelled); color: #fff; }
-        .btn-confirm-delete:hover { filter: brightness(.92); box-shadow: 0 0 0 3px var(--cancelled-soft); }
-
-        @media(max-width:420px) { .confirm-actions { flex-direction: column-reverse; } }
-
-        /* ===== TOAST ===== */
-        #toastStack {
-            position: fixed;
-            top: 22px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10001;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            width: 100%;
-            max-width: 420px;
-            padding: 0 16px;
-            pointer-events: none;
-        }
-
-        .toast {
-            pointer-events: auto;
-            width: 100%;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            background: #fff;
-            color: var(--ink);
-            padding: 13px 15px;
-            border-radius: var(--r-lg);
-            border: 1px solid var(--line);
-            border-left: 4px solid var(--ink);
-            box-shadow: var(--shadow-md);
-            font-size: 13px;
-            font-weight: 500;
-            line-height: 1.4;
-            opacity: 0;
-            transform: translateY(-16px) scale(.97);
-            animation: toastIn .3s ease forwards;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .toast.hide { animation: toastOut .28s ease forwards; }
-
-        .toast .toast-icon {
-            flex-shrink: 0;
-            width: 26px;
-            height: 26px;
-            border-radius: var(--r-sm);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            color: #fff;
-            background: var(--ink-soft);
-        }
-
-        .toast.toast-success { border-left-color: var(--confirmed); }
-        .toast.toast-success .toast-icon { background: var(--confirmed); }
-        .toast.toast-error { border-left-color: var(--cancelled); }
-        .toast.toast-error .toast-icon { background: var(--cancelled); }
-
-        .toast .toast-body { flex: 1; min-width: 0; padding-top: 2px; }
-        .toast .toast-title { font-weight: 700; font-size: 12.5px; margin-bottom: 2px; color: var(--ink); }
-        .toast .toast-msg { color: var(--ink-soft); font-size: 12.5px; word-break: break-word; }
-        .toast .toast-close { flex-shrink: 0; background: none; border: none; cursor: pointer; color: var(--muted); font-size: 13px; padding: 2px; }
-        .toast .toast-close:hover { color: var(--ink); }
-        .toast .toast-bar { position: absolute; left: 0; bottom: 0; height: 3px; background: currentColor; opacity: .3; animation: toastShrink 3s linear forwards; }
-
-        @keyframes toastIn { to { opacity: 1; transform: translateY(0) scale(1); } }
-        @keyframes toastOut { to { opacity: 0; transform: translateY(-12px) scale(.96); } }
-        @keyframes toastShrink { from { width: 100%; } to { width: 0%; } }
-
         /* ===== RESPONSIVE ===== */
-        @media(max-width:900px) {
-            .toolbar h2 { font-size: 1.15rem; }
-            table { min-width: 900px; font-size: 12.5px; }
-            th, td { padding: 10px 12px; }
+        @media (max-width: 900px) {
+            .res-table { min-width: 900px; font-size: 12.5px; }
+            .res-table th, .res-table td { padding: 10px 12px; }
         }
 
-        @media(max-width:520px) {
-            #toastStack { top: 14px; max-width: calc(100% - 24px); padding: 0; }
-            .form-grid { grid-template-columns: 1fr; }
+        @media (max-width: 520px) {
             .modal-foot { flex-direction: column-reverse; }
             .modal-foot button { width: 100%; }
-            .filter-bar { padding: 12px 14px; }
-            .filter-bar select { flex: 1; }
-            .toolbar { padding: 16px 18px; }
+            .filter-card { padding: 12px 14px; }
+            .filter-card select { flex: 1; }
             .toolbar-actions, .toolbar-actions .btn-primary { width: 100%; }
         }
 
         /* card view on very small screens */
-        @media(max-width:480px) {
-            .table-box { background: transparent; border: none; box-shadow: none; overflow: visible; }
+        @media (max-width: 480px) {
+            .table-box.res-box { background: transparent; border: none; box-shadow: none; overflow: visible; }
 
-            table, thead, tbody, th, td, tr { display: block; }
-            colgroup, thead { display: none; }
+            .res-table, .res-table thead, .res-table tbody, .res-table th, .res-table td, .res-table tr { display: block; }
+            .res-table colgroup, .res-table thead { display: none; }
+            .res-table { min-width: unset; }
 
-            tbody tr {
+            .res-table tbody tr {
                 border: 1px solid var(--line);
                 border-radius: var(--r-lg);
                 margin-bottom: 12px;
@@ -662,14 +308,14 @@
                 background: var(--card);
                 box-shadow: var(--shadow-sm);
             }
+            .res-table tbody tr:hover { background: var(--card); }
+            .res-table tbody tr.row-highlight { border-color: var(--pink-deep); box-shadow: 0 0 0 3px var(--pink-light); }
 
-            tbody tr:hover { background: var(--card); }
-
-            td { border: none; padding: 5px 0; font-size: 13px; display: flex; align-items: flex-start; gap: 8px; overflow: visible; }
-            td > div { min-width: 0; }
+            .res-table td { border: none; padding: 5px 0; font-size: 13px; display: flex; align-items: flex-start; gap: 8px; overflow: visible; }
+            .res-table td > div { min-width: 0; }
             .cell-main, .cell-sub { white-space: normal; }
 
-            td::before {
+            .res-table td::before {
                 content: attr(data-label);
                 font-weight: 700;
                 color: var(--text-sub);
@@ -680,8 +326,8 @@
                 padding-top: 2px;
             }
 
-            table { min-width: unset; }
             tr.detail-row td:first-child { padding-left: 0; box-shadow: none; }
+            .res-table tbody tr.row-highlight td:first-child { box-shadow: none; }
             .pagination { background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg); }
         }
     </style>
@@ -691,20 +337,21 @@
 
     @php
         $dummyRows = [
-            ['customer' => 'Juan Dela Cruz', 'email' => 'juan.delacruz@example.com', 'date' => 'Jul 02, 2026', 'time' => '10:00 AM', 'category' => 'DinoLakbay', 'package' => 'Whole Day Pass', 'pax' => 4],
+            ['customer' => 'Juan Dela Cruz', 'email' => 'juan.delacruz@example.com', 'date' => 'Jul 02, 2026', 'time' => '10:00 AM', 'category' => 'Dino Lakbay', 'package' => 'Whole Day Pass', 'pax' => 4],
             ['customer' => 'Maria Santos', 'email' => 'maria.santos@example.com', 'date' => 'Jul 03, 2026', 'time' => '1:00 PM', 'category' => 'Skataya', 'package' => 'Birthday Package', 'pax' => 12],
-            ['customer' => 'Ana Reyes', 'email' => 'ana.reyes@example.com', 'date' => 'Jul 05, 2026', 'time' => '9:00 AM', 'category' => 'DinoLakbay', 'package' => 'Half Day Pass', 'pax' => 2],
-            ['customer' => 'Mark Villanueva', 'email' => 'mark.villanueva@example.com', 'date' => 'Jul 06, 2026', 'time' => '2:30 PM', 'category' => 'PiyestaRides', 'package' => 'Group Package', 'pax' => 20],
+            ['customer' => 'Ana Reyes', 'email' => 'ana.reyes@example.com', 'date' => 'Jul 05, 2026', 'time' => '9:00 AM', 'category' => 'Dino Lakbay', 'package' => 'Half Day Pass', 'pax' => 2],
+            ['customer' => 'Mark Villanueva', 'email' => 'mark.villanueva@example.com', 'date' => 'Jul 06, 2026', 'time' => '2:30 PM', 'category' => 'Piyesta Rides', 'package' => 'Group Package', 'pax' => 20],
         ];
         $usingDummyData = !isset($bookings) || $bookings->count() === 0;
         $packageOptions = $packages ?? ['Whole Day Pass', 'Half Day Pass', 'Birthday Package', 'Group Package'];
 
         // Maps the `service` slug saved by the customer booking flow to its label.
+        // The slugs are kept as-is so existing records keep working; only the labels changed.
         // Reservations made via the admin "New Reservation" form don't collect a service yet.
         $serviceLabels = [
-            'dino_adventure' => 'DinoLakbay',
+            'dino_adventure' => 'Dino Lakbay',
             'rollerfever'    => 'Skataya',
-            'field_of_rides' => 'PiyestaRides',
+            'field_of_rides' => 'Piyesta Rides',
         ];
 
         // Rejection reasons. These are also shown to the customer.
@@ -718,6 +365,38 @@
         ];
 
         $methodLabels = ['qrph' => 'QR Ph', 'gcash' => 'GCash', 'maya' => 'Maya', 'cash' => 'Cash'];
+
+        // DONE = voucher already punched by the cashier. Add any other
+        // column name your cashier module uses to this check.
+        $isDoneFn = function ($b) {
+            return !empty($b->voucher_used_at)
+                || !empty($b->used_at)
+                || !empty($b->redeemed_at)
+                || !empty($b->is_used)
+                || in_array($b->voucher_status ?? null, ['used', 'redeemed', 'punched'], true)
+                || in_array($b->status ?? null, ['used', 'redeemed', 'completed', 'done'], true);
+        };
+
+        // ---- Summary statistics ----
+        $statTotal = 0;
+        $statPending = 0;
+        $statUnredeemed = 0;
+        $statRedeemed = 0;
+
+        if (!$usingDummyData) {
+            foreach ($bookings as $b) {
+                $statTotal++;
+                $bApproval = $b->approval_status ?? 'pending';
+
+                if ($isDoneFn($b)) {
+                    $statRedeemed++;
+                } elseif ($bApproval === 'approved') {
+                    $statUnredeemed++;
+                } elseif ($bApproval === 'pending') {
+                    $statPending++;
+                }
+            }
+        }
     @endphp
 
     <!-- TOOLBAR -->
@@ -734,8 +413,32 @@
         </div>
     </div>
 
+    <!-- SUMMARY CARDS -->
+    <div class="stat-grid">
+        <div class="stat-card">
+            <div class="stat-label">Total Reservations</div>
+            <div class="stat-value">{{ $statTotal }}</div>
+            <div class="stat-note">All bookings on record</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Pending Approval</div>
+            <div class="stat-value">{{ $statPending }}</div>
+            <div class="stat-note">Awaiting payment verification</div>
+        </div>
+        <div class="stat-card {{ $statUnredeemed > 0 ? 'is-highlight' : '' }}">
+            <div class="stat-label">Unredeemed Vouchers</div>
+            <div class="stat-value">{{ $statUnredeemed }}</div>
+            <div class="stat-note">Approved, not yet redeemed at the cashier</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Redeemed Vouchers</div>
+            <div class="stat-value">{{ $statRedeemed }}</div>
+            <div class="stat-note">Completed at the cashier</div>
+        </div>
+    </div>
+
     <!-- FILTER BAR -->
-    <div class="filter-bar">
+    <div class="filter-bar filter-card">
         <div class="search-wrap">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input type="text" id="searchInput" placeholder="Search by customer name or email...">
@@ -743,9 +446,9 @@
 
         <select id="categoryFilter">
             <option value="">All Categories</option>
-            <option value="Dino Adventure">DinoLakbay</option>
-            <option value="RollerFever">Skataya</option>
-            <option value="Field of Rides">PiyestaRides</option>
+            <option value="Piyesta Rides">Piyesta Rides</option>
+            <option value="Dino Lakbay">Dino Lakbay</option>
+            <option value="Skataya">Skataya</option>
         </select>
 
         <select id="statusFilter">
@@ -756,7 +459,7 @@
             <option value="done">Done</option>
         </select>
 
-        <button type="button" class="filter-clear" id="clearFiltersBtn">
+        <button type="button" class="btn-ghost" id="clearFiltersBtn">
             <i class="fa-solid fa-arrow-rotate-left"></i> Clear
         </button>
 
@@ -764,14 +467,14 @@
     </div>
 
     <!-- TABLE -->
-    <div class="table-box">
+    <div class="table-box res-box">
 
         @if ($usingDummyData)
             <div class="sample-note"><i class="fa-solid fa-circle-info"></i> Showing sample data &mdash; no
                 reservations recorded yet.</div>
         @endif
 
-        <table>
+        <table class="res-table">
             <colgroup>
                 <col style="width:25%">   {{-- Customer (name + email) --}}
                 <col style="width:130px"> {{-- Schedule (date + time) --}}
@@ -826,15 +529,7 @@
 
                             $approval = $booking->approval_status ?? 'pending';
                             $isApproved = $approval === 'approved';
-
-                            // DONE = voucher already punched by the cashier. Add any other
-                            // column name your cashier module uses to this check.
-                            $isDone = !empty($booking->voucher_used_at)
-                                || !empty($booking->used_at)
-                                || !empty($booking->redeemed_at)
-                                || !empty($booking->is_used)
-                                || in_array($booking->voucher_status ?? null, ['used', 'redeemed', 'punched'], true)
-                                || in_array($booking->status ?? null, ['used', 'redeemed', 'completed', 'done'], true);
+                            $isDone = $isDoneFn($booking);
 
                             // used by the filter and by auto-refresh
                             $statusKey = $isDone ? 'done' : $approval;
@@ -976,7 +671,7 @@
     </form>
 
     <!-- REJECT REASON MODAL -->
-    <div id="rejectOverlay" aria-hidden="true">
+    <div id="rejectOverlay" class="modal-overlay" aria-hidden="true">
         <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="rejectModalTitle"
             style="max-width:460px;">
             <form id="rejectForm" method="POST">
@@ -1020,7 +715,7 @@
     </div>
 
     <!-- NEW RESERVATION MODAL -->
-    <div id="reservationOverlay" aria-hidden="true">
+    <div id="reservationOverlay" class="modal-overlay" aria-hidden="true">
         <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="reservationModalTitle">
             <form id="newReservationForm" method="POST" action="{{ route('reservations.store') }}">
                 @csrf
@@ -1078,7 +773,7 @@
     </div>
 
     <!-- EDIT RESERVATION MODAL -->
-    <div id="editReservationOverlay" aria-hidden="true">
+    <div id="editReservationOverlay" class="modal-overlay" aria-hidden="true">
         <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="editReservationModalTitle">
             <form id="editReservationForm" method="POST">
                 @csrf
@@ -1137,21 +832,23 @@
     </div>
 
     <!-- CONFIRM DELETE MODAL -->
-    <div id="confirmOverlay" aria-hidden="true">
-        <div class="confirm-card" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle"
+    <div id="confirmOverlay" class="modal-overlay" aria-hidden="true">
+        <div class="modal-card confirm-card" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle"
             aria-describedby="confirmMessage">
-            <div class="confirm-icon"><i class="fa-solid fa-trash"></i></div>
-            <h3 id="confirmTitle">Delete this reservation?</h3>
-            <p id="confirmMessage">Are you sure you want to delete this reservation? This action cannot be undone.</p>
-            <div class="confirm-actions">
-                <button type="button" class="btn-confirm-cancel" id="confirmCancelBtn">Cancel</button>
-                <button type="button" class="btn-confirm-delete" id="confirmOkBtn">Yes, Delete</button>
+            <div class="confirm-icon warn"><i class="fa-solid fa-trash"></i></div>
+            <div class="confirm-body">
+                <div class="confirm-title" id="confirmTitle">Delete this reservation?</div>
+                <div class="confirm-message" id="confirmMessage">Are you sure you want to delete this reservation? This action cannot be undone.</div>
+            </div>
+            <div class="confirm-foot">
+                <button type="button" class="btn-ghost" id="confirmCancelBtn">Cancel</button>
+                <button type="button" class="btn-danger" id="confirmOkBtn">Yes, Delete</button>
             </div>
         </div>
     </div>
 
     <!-- VIEW RECEIPT MODAL -->
-    <div id="receiptOverlay" aria-hidden="true">
+    <div id="receiptOverlay" class="modal-overlay" aria-hidden="true">
         <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="receiptModalTitle"
             style="max-width:480px;">
             <div class="modal-head">
@@ -1170,7 +867,7 @@
     </div>
 
     <!-- VOUCHER CODE MODAL -->
-    <div id="voucherOverlay" aria-hidden="true">
+    <div id="voucherOverlay" class="modal-overlay" aria-hidden="true">
         <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="voucherModalTitle"
             style="max-width:440px;">
             <div class="modal-head">
@@ -1198,23 +895,17 @@
         </div>
     </div>
 
-    <!-- TOAST STACK -->
-    <div id="toastStack" aria-live="polite"></div>
-
-    @if (session('success'))
-        <span id="flash-success" data-msg="{{ session('success') }}" style="display:none;"></span>
-    @endif
-    @if (session('error'))
-        <span id="flash-error" data-msg="{{ session('error') }}" style="display:none;"></span>
-    @endif
-    @if ($errors->any())
-        <span id="flash-error" data-msg="{{ $errors->first() }}" style="display:none;"></span>
-    @endif
+    @include('partials.ui-toast')
 
 @endsection
 
 @push('scripts')
     <script>
+        // Show the first validation error (session success/error are handled by the shared toast partial).
+        @if ($errors->any())
+            showToast(@json($errors->first()), 'error');
+        @endif
+
         // ── New Reservation modal ──
         const reservationOverlay = document.getElementById('reservationOverlay');
         const openReservationModalBtn = document.getElementById('openReservationModalBtn');
@@ -1275,16 +966,9 @@
         });
 
         // If validation failed server-side and the page reloaded with old input,
-        // reopen whichever modal was being submitted.
-        @if ($errors->any())
-            @if (old('_method') === 'PUT')
-                // an edit was in flight — nothing to prefill without the original booking id,
-                // so just leave the page as-is; the flash error toast below still shows.
-            @elseif (old('_method') === 'PATCH')
-                // status update failed — the error toast below is enough.
-            @else
-                openReservationModal();
-            @endif
+        // reopen the New Reservation modal. Failed edits/status updates only show the error toast.
+        @if ($errors->any() && !in_array(old('_method'), ['PUT', 'PATCH'], true))
+            openReservationModal();
         @endif
 
         // ── View Receipt modal ──
@@ -1557,50 +1241,6 @@
             if (voucherOverlay.classList.contains('active')) closeVoucherModal();
         });
 
-        // ── Toast notifications ──
-        const toastStack = document.getElementById('toastStack');
-
-        const TOAST_ICONS = {
-            success: { icon: 'fa-solid fa-circle-check', title: 'Success' },
-            error: { icon: 'fa-solid fa-circle-exclamation', title: 'Error' }
-        };
-
-        function showToast(msg, type = "success", opts = {}) {
-            const cfg = TOAST_ICONS[type] || TOAST_ICONS.success;
-            const title = opts.title || cfg.title;
-            const duration = opts.duration ?? 3500;
-
-            const el = document.createElement('div');
-            el.className = `toast toast-${type}`;
-            el.innerHTML = `
-                <div class="toast-icon"><i class="${cfg.icon}"></i></div>
-                <div class="toast-body">
-                    <div class="toast-title">${title}</div>
-                    <div class="toast-msg"></div>
-                </div>
-                <button type="button" class="toast-close" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>
-                <div class="toast-bar" style="animation-duration:${duration}ms;"></div>
-            `;
-            el.querySelector('.toast-msg').textContent = msg;
-
-            function dismiss() {
-                if (!el.isConnected) return;
-                el.classList.add('hide');
-                setTimeout(() => el.remove(), 280);
-            }
-
-            el.querySelector('.toast-close').addEventListener('click', dismiss);
-            toastStack.appendChild(el);
-
-            if (duration > 0) setTimeout(dismiss, duration);
-        }
-
-        const successMsg = document.getElementById('flash-success')?.dataset.msg;
-        const errorMsg = document.getElementById('flash-error')?.dataset.msg;
-
-        if (successMsg) showToast(successMsg, "success");
-        if (errorMsg) showToast(errorMsg, "error");
-
         // ===== AUTO-REFRESH =====
         // Every 8 seconds the current page is fetched in the background and each row's
         // "signature" (id + updated_at + status) is compared. If anything changed (new
@@ -1621,10 +1261,7 @@
             let reloading = false;
 
             function anyModalOpen() {
-                return !!document.querySelector(
-                    '#reservationOverlay.active, #editReservationOverlay.active, #confirmOverlay.active, ' +
-                    '#receiptOverlay.active, #rejectOverlay.active, #voucherOverlay.active'
-                );
+                return !!document.querySelector('.modal-overlay.active');
             }
 
             function saveFilterState() {
@@ -1634,13 +1271,13 @@
                         category: document.getElementById('categoryFilter')?.value || '',
                         status: document.getElementById('statusFilter')?.value || ''
                     }));
-                } catch (e) { /* storage unavailable — fine */ }
+                } catch (e) { /* storage unavailable, fine */ }
             }
 
             async function checkForUpdates() {
                 if (reloading || document.hidden || window.__submittingForm) return;
                 try {
-                    const res = await fetch(window.location.href, {
+                    const res = await fetch(window.location.pathname + window.location.search, {
                         credentials: 'same-origin',
                         cache: 'no-store',
                         headers: { 'X-Requested-With': 'XMLHttpRequest' }
@@ -1659,7 +1296,7 @@
                         setTimeout(() => window.location.reload(), 1000);
                     }
                 } catch (err) {
-                    // network hiccup — try again on the next poll
+                    // network hiccup, try again on the next poll
                 }
             }
 
@@ -1938,7 +1575,50 @@
                 render();
             });
 
+            // ---- Jump to + highlight a reservation (link: /reservations#<id> from the Visitors page) ----
+            function focusFromHash() {
+                const raw = decodeURIComponent((window.location.hash || '').replace(/^#/, ''))
+                    .replace(/^reservation-/, '').trim();
+                if (!raw) return;
+
+                const target = originalRows.find(r => r.dataset.id === raw);
+                if (!target) {
+                    showToast('That reservation could not be found.', 'error');
+                    history.replaceState(null, '', window.location.pathname + window.location.search);
+                    return;
+                }
+
+                // clear filters so the row is guaranteed to be visible
+                if (searchInput) searchInput.value = '';
+                if (categoryFilter) categoryFilter.value = '';
+                if (statusFilter) statusFilter.value = '';
+
+                // open its customer group (if it belongs to one)
+                if (target.dataset.group !== undefined) {
+                    groupState.set(parseInt(target.dataset.group, 10), true);
+                }
+
+                // find which page the row ends up on
+                const { result, hasActiveFilter } = getFilteredItems();
+                const counts = computeVisibleRowCounts(result, hasActiveFilter);
+                const pages = paginateByVisibleRows(result, counts, PAGE_SIZE);
+                const pageIdx = pages.findIndex(pg => pg.some(it =>
+                    it.type === 'single' ? it.row === target : it.rows.includes(target)));
+                currentPage = pageIdx >= 0 ? pageIdx + 1 : 1;
+                render();
+
+                originalRows.forEach(r => r.classList.remove('row-highlight'));
+                target.classList.add('row-highlight');
+                setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+                setTimeout(() => target.classList.remove('row-highlight'), 6000);
+
+// drop the hash so a refresh doesn't re-trigger it
+history.replaceState(null, '', window.location.pathname + window.location.search);
+            }
+
             render();
+            focusFromHash();
+            window.addEventListener('hashchange', focusFromHash);
         })();
     </script>
 @endpush

@@ -19,6 +19,13 @@ class ZoneForecastController extends Controller
         'Dinolakbay'   => ['dino_adventure'],
     ];
 
+    /*
+     * Which products count as "tickets" for the Top Products charts.
+     * Matches category_name or category_type containing "ticket".
+     * Adjust to your real category naming (e.g. category_type = 'Admission').
+     */
+    private const TICKET_SQL = " AND (c.category_name LIKE '%ticket%' OR c.category_type LIKE '%ticket%') ";
+
     public function index(string $zone)
     {
         $zone = $this->resolveZone($zone);
@@ -35,15 +42,17 @@ class ZoneForecastController extends Controller
         return response()->json($this->voucherData($request, self::ZONE_SERVICES[$zone] ?? []));
     }
 
+    public function discountSummary(Request $request, string $zone)
+    {
+        $zone = $this->resolveZone($zone);
+        return response()->json($this->discountData($request, $zone));
+    }
+
     public function summary(Request $request, string $zone)
     {
         $zone = $this->resolveZone($zone);
-        [$dateSql, $dateBindings] = $this->buildDateFilter($request);
+        [$dateSql, $dateBindings] = $this->monthOrDateFilter($request);
         [$paySql, $payBindings]   = $this->buildPaymentFilter($request);
-
-        $defaultMonthSql = $dateSql === ''
-            ? " AND MONTH(st.created_at) = MONTH(CURDATE()) AND YEAR(st.created_at) = YEAR(CURDATE()) "
-            : $dateSql;
 
         $row = DB::selectOne("
             SELECT
@@ -56,25 +65,33 @@ class ZoneForecastController extends Controller
             JOIN categories c ON c.category_id = p.category_id
             WHERE st.transaction_status = 'Completed'
               AND c.zone = ?
-              {$defaultMonthSql} {$paySql}
-        ", array_merge([$zone], $dateSql === '' ? [] : $dateBindings, $payBindings));
+              {$dateSql} {$paySql}
+        ", array_merge([$zone], $dateBindings, $payBindings));
 
-        $lowStock = DB::selectOne("
-            SELECT COUNT(*) AS low_stock_count
-            FROM products p
-            JOIN categories c ON c.category_id = p.category_id
-            WHERE p.stock <= 20
-              AND p.status = 'active'
-              AND c.zone = ?
-              AND c.is_stock_tracked = 1
-        ", [$zone]);
+        // Wrapped so one failing block (e.g. migration not run yet) never blanks the whole KPI strip.
+        try {
+            $discounts = $this->discountData($request, $zone);
+        } catch (\Throwable $e) {
+            \Log::error('Zone forecast discountData failed: ' . $e->getMessage());
+            $discounts = ['total_discount' => 0, 'total_transactions' => 0];
+        }
+
+        try {
+            $vouchers = $this->voucherData($request, self::ZONE_SERVICES[$zone] ?? [], true);
+        } catch (\Throwable $e) {
+            \Log::error('Zone forecast voucherData failed: ' . $e->getMessage());
+            $vouchers = ['total_amount' => 0, 'total_vouchers' => 0];
+        }
 
         return response()->json([
-            'zone'              => $zone,
-            'total_txn'         => (int) ($row->total_txn ?? 0),
-            'total_revenue'     => (float) ($row->total_revenue ?? 0),
-            'total_items_sold'  => (int) ($row->total_items_sold ?? 0),
-            'low_stock_count'   => (int) ($lowStock->low_stock_count ?? 0),
+            'zone'                   => $zone,
+            'total_txn'              => (int) ($row->total_txn ?? 0),
+            'total_revenue'          => (float) ($row->total_revenue ?? 0),
+            'total_items_sold'       => (int) ($row->total_items_sold ?? 0),
+            'total_discounts'        => (float) $discounts['total_discount'],
+            'discount_txn_count'     => (int) $discounts['total_transactions'],
+            'total_voucher_amount'   => (float) $vouchers['total_amount'],
+            'total_voucher_count'    => (int) $vouchers['total_vouchers'],
         ]);
     }
 
@@ -83,7 +100,11 @@ class ZoneForecastController extends Controller
         $zone = $this->resolveZone($zone);
         [$dateSql, $dateBindings] = $this->buildDateFilter($request);
         [$paySql, $payBindings]   = $this->buildPaymentFilter($request);
+        [$monthSql, $monthBindings] = $this->monthOrDateFilter($request);
 
+        $ticketSql = self::TICKET_SQL;
+
+        // All-time (kept for the PDF report)
         $allTime = DB::select("
             SELECT p.product_name, c.category_name,
                    SUM(ti.quantity) AS total_qty,
@@ -100,10 +121,7 @@ class ZoneForecastController extends Controller
             LIMIT 15
         ", array_merge([$zone], $dateBindings, $payBindings));
 
-        $monthSql = $dateSql === ''
-            ? " AND MONTH(st.created_at) = MONTH(CURDATE()) AND YEAR(st.created_at) = YEAR(CURDATE()) "
-            : $dateSql;
-
+        // Full this-month list (no LIMIT so the totals row is accurate)
         $thisMonth = DB::select("
             SELECT p.product_name, c.category_name,
                    SUM(ti.quantity) AS total_qty,
@@ -117,12 +135,54 @@ class ZoneForecastController extends Controller
               {$monthSql} {$paySql}
             GROUP BY p.product_id, p.product_name, c.category_name
             ORDER BY total_qty DESC
-            LIMIT 10
-        ", array_merge([$zone], $dateSql === '' ? [] : $dateBindings, $payBindings));
+        ", array_merge([$zone], $monthBindings, $payBindings));
+
+        $totals = [
+            'total_qty'     => array_sum(array_map(fn($r) => (float) $r->total_qty, $thisMonth)),
+            'total_revenue' => array_sum(array_map(fn($r) => (float) $r->total_revenue, $thisMonth)),
+        ];
+
+        // Chart data: tickets only
+        $chartThisMonth = DB::select("
+            SELECT p.product_name, c.category_name,
+                   SUM(ti.quantity) AS total_qty,
+                   SUM(ti.subtotal) AS total_revenue
+            FROM transaction_items ti
+            JOIN sales_transactions st ON ti.transaction_id = st.transaction_id
+            JOIN products p ON ti.product_id = p.product_id
+            JOIN categories c ON c.category_id = p.category_id
+            WHERE st.transaction_status = 'Completed'
+              AND c.zone = ?
+              {$ticketSql}
+              {$monthSql} {$paySql}
+            GROUP BY p.product_id, p.product_name, c.category_name
+            ORDER BY total_qty DESC
+            LIMIT 8
+        ", array_merge([$zone], $monthBindings, $payBindings));
+
+        $chartAllTime = DB::select("
+            SELECT p.product_name, c.category_name,
+                   SUM(ti.quantity) AS total_qty,
+                   SUM(ti.subtotal) AS total_revenue
+            FROM transaction_items ti
+            JOIN sales_transactions st ON ti.transaction_id = st.transaction_id
+            JOIN products p ON ti.product_id = p.product_id
+            JOIN categories c ON c.category_id = p.category_id
+            WHERE st.transaction_status = 'Completed'
+              AND c.zone = ?
+              {$ticketSql}
+              {$dateSql} {$paySql}
+            GROUP BY p.product_id, p.product_name, c.category_name
+            ORDER BY total_qty DESC
+            LIMIT 8
+        ", array_merge([$zone], $dateBindings, $payBindings));
 
         return response()->json([
-            'all_time'   => $allTime,
-            'this_month' => $thisMonth,
+            'all_time'         => $allTime,
+            'this_month'       => $thisMonth,
+            'this_month_totals' => $totals,
+            'chart_this_month' => $chartThisMonth,
+            'chart_all_time'   => $chartAllTime,
         ]);
     }
 
@@ -404,22 +464,22 @@ class ZoneForecastController extends Controller
                 $X[] = (int) $minDate->diffInDays(Carbon::parse($d));
             }
             if (count($X) < 3) {
-            // Not enough history for regression: use a flat average estimate instead
-            $windowDays = max(1, $minDate->diffInDays($today) + 1);
-            $dailyAvg   = array_sum($Y) / $windowDays;
+                // Not enough history for regression: use a flat average estimate instead
+                $windowDays = max(1, $minDate->diffInDays($today) + 1);
+                $dailyAvg   = array_sum($Y) / $windowDays;
 
-            $results[] = [
-                'product_name'        => $g['name'],
-                'category_name'       => $g['cat'],
-                'forecast_next_month' => round($dailyAvg * 30),
-                'forecast_daily_avg'  => round($dailyAvg, 1),
-                'current_month_avg'   => round($dailyAvg, 1),
-                'trend'               => 'stable',
-                'data_points'         => count($X),
-                'low_data'            => false,
-            ];
-            continue;
-        }
+                $results[] = [
+                    'product_name'        => $g['name'],
+                    'category_name'       => $g['cat'],
+                    'forecast_next_month' => round($dailyAvg * 30),
+                    'forecast_daily_avg'  => round($dailyAvg, 1),
+                    'current_month_avg'   => round($dailyAvg, 1),
+                    'trend'               => 'stable',
+                    'data_points'         => count($X),
+                    'low_data'            => false,
+                ];
+                continue;
+            }
 
             [$slope, $intercept] = $this->linearRegression($X, $Y);
 
@@ -506,6 +566,7 @@ class ZoneForecastController extends Controller
             'topProducts'       => $this->topProducts($request, $zone)->getData(true),
             'paymentBreakdown'  => $this->paymentBreakdown($request, $zone)->getData(true),
             'categoryBreakdown' => $this->categoryBreakdown($request, $zone)->getData(true),
+            'discountSummary'   => $this->discountData($request, $zone),
             'voucherSummary'    => $this->voucherData($request, self::ZONE_SERVICES[$zone] ?? []),
             'hasVouchers'       => $this->zoneHasVouchers($zone),
             'generatedAt'       => now()->format('F j, Y g:i A'),
@@ -553,6 +614,18 @@ class ZoneForecastController extends Controller
         return [$sql, $bindings];
     }
 
+    /** Date filter if given, otherwise the current month. */
+    private function monthOrDateFilter(Request $request): array
+    {
+        [$sql, $bindings] = $this->buildDateFilter($request);
+
+        if ($sql === '') {
+            $sql = " AND MONTH(st.created_at) = MONTH(CURDATE()) AND YEAR(st.created_at) = YEAR(CURDATE()) ";
+        }
+
+        return [$sql, $bindings];
+    }
+
     private function buildPaymentFilter(Request $request): array
     {
         $method = $request->query('payment_method');
@@ -564,9 +637,85 @@ class ZoneForecastController extends Controller
         return ['', []];
     }
 
-    private function voucherData(Request $request, ?array $services = null): array
+    /**
+     * Discounts given on completed transactions that contain items from this zone,
+     * read from transaction_discounts (one row per discount type per transaction).
+     * Follows the date + payment filters (defaults to this month) and the optional
+     * discount_type filter.
+     */
+    private function discountData(Request $request, string $zone): array
     {
-        [$dateSql, $dateBindings] = $this->buildDateFilter($request);
+        [$dateSql, $dateBindings] = $this->monthOrDateFilter($request);
+        [$paySql, $payBindings]   = $this->buildPaymentFilter($request);
+
+        $discSql = '';
+        $discBindings = [];
+        $type = $request->query('discount_type');
+        if ($type && $type !== 'all') {
+            $discSql = ' AND td.discount_type = ? ';
+            $discBindings[] = $type;
+        }
+
+        $zoneExists = "
+            EXISTS (
+                SELECT 1
+                FROM transaction_items ti
+                JOIN products p ON ti.product_id = p.product_id
+                JOIN categories c ON c.category_id = p.category_id
+                WHERE ti.transaction_id = st.transaction_id AND c.zone = ?
+            )";
+
+        $rows = DB::select("
+            SELECT td.discount_type,
+                   COUNT(DISTINCT st.transaction_id) AS num_transactions,
+                   SUM(td.amount)                    AS total_discount
+            FROM transaction_discounts td
+            JOIN sales_transactions st ON st.transaction_id = td.transaction_id
+            WHERE st.transaction_status = 'Completed'
+              AND {$zoneExists}
+              {$dateSql} {$paySql} {$discSql}
+            GROUP BY td.discount_type
+            ORDER BY total_discount DESC
+        ", array_merge([$zone], $dateBindings, $payBindings, $discBindings));
+
+        // A transaction can have two discount types, so count it once here.
+        $distinct = DB::selectOne("
+            SELECT COUNT(DISTINCT st.transaction_id) AS total_transactions
+            FROM transaction_discounts td
+            JOIN sales_transactions st ON st.transaction_id = td.transaction_id
+            WHERE st.transaction_status = 'Completed'
+              AND {$zoneExists}
+              {$dateSql} {$paySql} {$discSql}
+        ", array_merge([$zone], $dateBindings, $payBindings, $discBindings));
+
+        $gross = DB::selectOne("
+            SELECT SUM(ti.subtotal) AS total_revenue
+            FROM sales_transactions st
+            JOIN transaction_items ti ON ti.transaction_id = st.transaction_id
+            JOIN products p ON ti.product_id = p.product_id
+            JOIN categories c ON c.category_id = p.category_id
+            WHERE st.transaction_status = 'Completed'
+              AND c.zone = ?
+              {$dateSql} {$paySql}
+        ", array_merge([$zone], $dateBindings, $payBindings));
+
+        $totalDiscount = array_sum(array_map(fn($r) => (float) $r->total_discount, $rows));
+        $grossTotal    = (float) ($gross->total_revenue ?? 0);
+
+        return [
+            'total_discount'     => $totalDiscount,
+            'total_transactions' => (int) ($distinct->total_transactions ?? 0),
+            'gross'              => $grossTotal,
+            'percent_of_gross'   => $grossTotal > 0 ? round(($totalDiscount / $grossTotal) * 100, 1) : 0,
+            'by_type'            => $this->withPercentages($rows, 'total_discount'),
+        ];
+    }
+
+    private function voucherData(Request $request, ?array $services = null, bool $defaultMonth = false): array
+    {
+        [$dateSql, $dateBindings] = $defaultMonth
+            ? $this->monthOrDateFilter($request)
+            : $this->buildDateFilter($request);
 
         $svcSql = '';
         $svcBindings = [];
